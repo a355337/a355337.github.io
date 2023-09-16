@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Results</title>
+</head>
+<body>
+    <h1>Test Results</h1>
+    <div id="32u"></div>
+    <div id="64u"></div>
+    <div id="128u"></div>
+    <script>
+        const folders = ['32u', '64u', '128u'];
+
+        // 瀏覽每個資料夾並生成連結
+        folders.forEach(folder => {
+            // 使用文件API獲取資料夾內容
+            fetch('./' + folder + '/')
+                .then(response => response.text())
+                .then(data => {
+                    // 使用DOM解析器來解析 html
+                    let parser = new DOMParser();
+                    let htmlDoc = parser.parseFromString(data, 'text/html');
+                    
+                    // 獲取 html 中的所需連結 ".html"
+                    let links = htmlDoc.links;
+                    
+                    for(var i = 0; i < links.length; i++) {
+                        var link = links[i];
+                        if(link.href.endsWith('.html')) {
+                            var a = document.createElement('a');
+                            a.href = folder + '/' + link.textContent;  // 設定鏈結
+                            a.textContent = link.textContent;  // 設定鏈結顯示文字
+                            
+                            // 在相應的 div 中添加連結
+                            document.getElementById(folder).appendChild(a);
+                        }
+                    }
+        });
+    </script>
+</body>
+</html>
