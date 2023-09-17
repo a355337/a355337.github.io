@@ -2,40 +2,65 @@
 <html>
 <head>
     <title>Test Results</title>
+    <style>
+        .flex-container {
+            display: flex;
+            flex-direction: row;
+        }
+        .flex-container > div {
+            margin: 10px;
+        }
+    </style>
 </head>
 <body>
     <h1>Test Results</h1>
-    <div id="32u"></div>
-    <div id="64u"></div>
-    <div id="128u"></div>
-    <script>
-        const folders = ['32u', '64u', '128u'];
-        
-        // 瀏覽每個資料夾並生成連結
-        folders.forEach(folder => {
-            // 使用文件API獲取資料夾內容
-            fetch('./' + folder + '/')
-                .then(response => response.text())
-                .then(data => {
-                    // 使用DOM解析器來解析 html
-                    let parser = new DOMParser();
-                    let htmlDoc = parser.parseFromString(data, 'text/html');
-                    
-                    // 獲取 html 中的所需連結 ".html"
-                    let links = htmlDoc.links;
-                    
-                    for(var i = 0; i < links.length; i++) {
-                        var link = links[i];
-                        if(link.href.endsWith('.html')) {
-                            var a = document.createElement('a');
-                            a.href = folder + '/' + link.textContent;  // 設定鏈結
-                            a.textContent = link.textContent;  // 設定鏈結顯示文字
-                            
-                            // 在相應的 div 中添加連結
-                            document.getElementById(folder).appendChild(a);
-                        }
+    <div class="flex-container">
+        <div>
+            <label for="folders">Choose a folder:</label>
+            <select name="folders" id="folders">
+                <option>32u</option>
+                <option>64u</option>
+                <option>128u</option>
+            </select><br>
+
+            <label for="files">Choose a file:</label>
+            <select name="files" id="files">
+                <script> 
+                    let start = 91602;
+                    let end = 91800;
+                    let select = document.getElementById('files');
+
+                    for (let i = start; i <= end; i++) {
+                        let opt = document.createElement('option');
+                        let date = ('Y' + ('0' + i).slice(-6) + '.html');
+                        opt.value = date;
+                        opt.innerHTML = date;
+                        select.appendChild(opt);
                     }
-        })});
-        </script>
+                </script>
+            </select>
+        </div>
+
+        <div>
+            <iframe id="target" width="800px" height="600px"></iframe>
+        </div>
+    </div>
+    
+    <script>
+        // Register an event listener for the select change
+        document.getElementById('folders').addEventListener('change', updateIframe);
+        document.getElementById('files').addEventListener('change', updateIframe);
+
+        // Function to update the iframe based on the select values
+        function updateIframe() {
+            let folder = document.getElementById('folders').value;
+            let file = document.getElementById('files').value;
+            document.getElementById('target').src = './' + folder + '/' + file;
+        }
+
+        window.onload = function () {
+            updateIframe();  // Update the iframe once everything is loaded
+        };
+    </script>
 </body>
 </html>
