@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>森林動物派對 - 4~6歲幼兒翻牌遊戲</title>
+    <!-- 引入 Tailwind CSS 進行精美排版 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google 字型：選用童趣且圓潤的 Fredoka Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Fredoka', 'Microsoft JhengHei', sans-serif;
+            background: linear-gradient(135deg, #fef3c7 0%, #dcfce7 100%);
+            touch-action: manipulation;
+        }
+
+        /* 3D 卡牌翻轉必備樣式 */
+        .card-container {
+            perspective: 1000px;
+        }
+
+        /* 確保卡牌內層能完美填滿外層的正方形容器 */
+        .card-inner {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            text-align: center;
+            transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transform-style: preserve-3d;
+        }
+
+        .card-container.flipped .card-inner {
+            transform: rotateY(180deg);
+        }
+
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 1.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 16px -4px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        /* 卡牌背面（未翻開）- 夢幻星星背景 */
+        .card-front {
+            background: radial-gradient(circle, #60a5fa 0%, #3b82f6 100%);
+            border: 4px solid #ffffff;
+        }
+
+        /* 卡牌正面（已翻開）- 亮色背景 */
+        .card-back {
+            background-color: #ffffff;
+            transform: rotateY(180deg);
+            border: 4px solid #4ade80;
+        }
+
+        /* 呼吸與跳動動畫 */
+        @keyframes gentle-bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+        .animate-bounce-gentle {
+            animation: gentle-bounce 2s infinite ease-in-out;
+        }
+
+        /* 玩家回合閃爍外框 */
+        .active-player-glow {
+            box-shadow: 0 0 25px #f59e0b;
+            animation: pulse-glow 1.5s infinite alternate;
+        }
+        @keyframes pulse-glow {
+            0 { transform: scale(1); border-color: #f59e0b; }
+            100% { transform: scale(1.05); border-color: #f97316; }
+        }
+
+        /* 魔法彩虹卡炫彩特效 */
+        .magic-card {
+            background: linear-gradient(45deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%);
+            animation: rainbow-glow 2s infinite alternate;
+        }
+        @keyframes rainbow-glow {
+            0% { box-shadow: 0 0 10px #ff007f; }
+            100% { box-shadow: 0 0 25px #00ffff; }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-between p-4 overflow-x-hidden select-none">
+
+    <!-- Canvas 動態五彩碎紙背景 (過關慶祝用) -->
+    <canvas id="confetti-canvas" class="fixed top-0 left-0 w-full h-full pointer-events-none z-50"></canvas>
+
+    <script>
+        // 使用 Web Audio API 建立無版權且免外部載入的音效播放器
+        const AudioSynth = {
+            ctx: null,
+            init() {
+                if (!this.ctx) {
+                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+            },
+            play(type) {
+                this.init();
+                const ctx = this.ctx;
+                if (ctx.state === 'suspended') {
+                    ctx.resume();
+                }
+                
+                const now = ctx.currentTime;
+                
+                if (type === 'flip') {
+                    // 翻牌聲 (溫和的泡泡啵聲)
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(150, now);
+                    osc.frequency.exponentialRampToValueAtTime(450, now + 0.15);
+                    gain.gain.setValueAtTime(0.3, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.15);
+                } else if (type === 'match') {
+                    // 答對聲 (歡樂的叮咚聲)
+                    const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+                    notes.forEach((freq, idx) => {
+                        const osc = ctx.createOscillator();
+                        const gain = ctx.createGain();
+                        osc.type = 'triangle';
+                        osc.frequency.setValueAtTime(freq, now + idx * 0.08);
+                        gain.gain.setValueAtTime(0.2, now + idx * 0.08);
+                        gain.gain.exponentialRampToValueAtTime(0.01, now + idx * 0.08 + 0.25);
+                        osc.connect(gain);
+                        gain.connect(ctx.destination);
+                        osc.start(now + idx * 0.08);
+                        osc.stop(now + idx * 0.08 + 0.25);
+                    });
+                } else if (type === 'mismatch') {
+                    // 答錯聲 (低沉溫和的嘟嘟聲)
+                    const osc1 = ctx.createOscillator();
+                    const osc2 = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc1.type = 'sawtooth';
+                    osc2.type = 'sine';
+                    osc1.frequency.setValueAtTime(180, now);
+                    osc1.frequency.linearRampToValueAtTime(130, now + 0.2);
+                    osc2.frequency.setValueAtTime(185, now);
+                    osc2.frequency.linearRampToValueAtTime(135, now + 0.2);
+                    gain.gain.setValueAtTime(0.15, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+                    osc1.connect(gain);
+                    osc2.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc1.start(now);
+                    osc2.start(now);
+                    osc1.stop(now + 0.25);
+                    osc2.stop(now + 0.25);
+                } else if (type === 'magic') {
+                    // 魔法卡專用炫麗音效 (連續向上琶音)
+                    const totalNotes = 10;
+                    for (let i = 0; i < totalNotes; i++) {
+                        const osc = ctx.createOscillator();
+                        const gain = ctx.createGain();
+                        osc.type = 'sine';
+                        const freq = 400 + (i * 150);
+                        osc.frequency.setValueAtTime(freq, now + i * 0.05);
+                        gain.gain.setValueAtTime(0.15, now + i * 0.05);
+                        gain.gain.exponentialRampToValueAtTime(0.005, now + i * 0.05 + 0.15);
+                        osc.connect(gain);
+                        gain.connect(ctx.destination);
+                        osc.start(now + i * 0.05);
+                        osc.stop(now + i * 0.05 + 0.15);
+                    }
+                } else if (type === 'win') {
+                    // 通關大滿貫勝利旋律
+                    const melody = [523.25, 587.33, 659.25, 698.46, 783.99, 880.00, 987.77, 1046.50];
+                    melody.forEach((freq, idx) => {
+                        const osc = ctx.createOscillator();
+                        const gain = ctx.createGain();
+                        osc.type = 'triangle';
+                        osc.frequency.setValueAtTime(freq, now + idx * 0.12);
+                        gain.gain.setValueAtTime(0.2, now + idx * 0.12);
+                        gain.gain.exponentialRampToValueAtTime(0.01, now + idx * 0.12 + 0.3);
+                        osc.connect(gain);
+                        gain.connect(ctx.destination);
+                        osc.start(now + idx * 0.12);
+                        osc.stop(now + idx * 0.12 + 0.3);
+                    });
+                }
+            }
+        };
+    </script>
+
+    <div id="setup-screen" class="w-full max-w-md bg-white/90 backdrop-blur-md rounded-3xl p-6 shadow-2xl border-4 border-yellow-300 my-auto">
+        <div class="text-center">
+            <h1 class="text-4xl font-extrabold text-amber-600 tracking-wider mb-2 animate-bounce-gentle">
+                🦁 森林動物派對 🐰
+            </h1>
+            <p class="text-emerald-600 font-semibold mb-6">適合4~6歲寶貝的記憶翻牌挑戰！</p>
+        </div>
+
+        <!-- 選擇模式 -->
+        <div class="mb-5">
+            <label class="block text-gray-700 text-lg font-bold mb-2">👦 選擇遊玩人數：</label>
+            <div class="grid grid-cols-2 gap-3">
+                <button type="button" onclick="selectMode('single')" id="btn-mode-single" class="mode-btn py-3 px-4 rounded-2xl border-4 border-amber-400 bg-amber-100 text-amber-800 font-bold text-lg flex flex-col items-center justify-center transition-all duration-300 scale-105 shadow-md">
+                    <span class="text-3xl mb-1">👦</span>
+                    <span>1 人自己玩</span>
+                </button>
+                <button type="button" onclick="selectMode('double')" id="btn-mode-double" class="mode-btn py-3 px-4 rounded-2xl border-4 border-gray-200 bg-gray-50 text-gray-500 font-bold text-lg flex flex-col items-center justify-center transition-all duration-300 hover:bg-emerald-50 hover:border-emerald-300">
+                    <span class="text-3xl mb-1">🧑‍🤝‍🧑</span>
+                    <span>2 人對戰玩</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="mb-5">
+            <label class="block text-gray-700 text-lg font-bold mb-2">🎯 選擇牌子數量：</label>
+            <div class="grid grid-cols-3 gap-2">
+                <button type="button" onclick="selectGrid(3)" class="grid-btn py-2 px-1 rounded-xl border-2 border-emerald-400 bg-emerald-50 text-emerald-800 font-bold text-sm text-center">
+                    3 x 3 (9張)<br><span class="text-xs text-orange-500">⭐ 最簡單</span>
+                </button>
+                <button type="button" onclick="selectGrid(4)" class="grid-btn py-2 px-1 rounded-xl border-2 border-amber-400 bg-amber-100 text-amber-800 font-bold text-sm text-center scale-105 ring-2 ring-amber-400">
+                    4 x 4 (16張)<br><span class="text-xs text-amber-600">👍 超推薦</span>
+                </button>
+                <button type="button" onclick="selectGrid(5)" class="grid-btn py-2 px-1 rounded-xl border-2 border-gray-200 bg-white text-gray-700 font-bold text-sm text-center">
+                    5 x 5 (25張)<br><span class="text-xs text-blue-500">✨ 魔法卡</span>
+                </button>
+                <button type="button" onclick="selectGrid(6)" class="grid-btn py-2 px-1 rounded-xl border-2 border-gray-200 bg-white text-gray-700 font-bold text-sm text-center">
+                    6 x 6 (36張)<br><span class="text-xs text-gray-500">🔥 小挑戰</span>
+                </button>
+                <button type="button" onclick="selectGrid(8)" class="grid-btn py-2 px-1 rounded-xl border-2 border-gray-200 bg-white text-gray-700 font-bold text-sm text-center">
+                    8 x 8 (64張)<br><span class="text-xs text-gray-500">🧠 記憶王</span>
+                </button>
+                <button type="button" onclick="selectGrid(10)" class="grid-btn py-2 px-1 rounded-xl border-2 border-gray-200 bg-white text-gray-700 font-bold text-sm text-center">
+                    10x10 (100張)<br><span class="text-xs text-red-500">👑 終極大師</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="mb-6">
+            <label class="block text-gray-700 text-lg font-bold mb-2">🎨 選擇卡片主題：</label>
+            <div class="grid grid-cols-4 gap-2">
+                <button type="button" onclick="selectTheme('animals')" class="theme-btn py-2 rounded-xl border-2 border-amber-400 bg-amber-100 text-amber-800 font-bold text-sm text-center scale-105 ring-2 ring-amber-400">
+                    🦁<br>動物
+                </button>
+                <button type="button" onclick="selectTheme('fruits')" class="theme-btn py-2 rounded-xl border-2 border-gray-200 bg-white text-gray-700 font-bold text-sm text-center">
+                    🍎<br>水果
+                </button>
+                <button type="button" onclick="selectTheme('vehicles')" class="theme-btn py-2 rounded-xl border-2 border-gray-200 bg-white text-gray-700 font-bold text-sm text-center">
+                    🚗<br>車車
+                </button>
+                <button type="button" onclick="selectTheme('sweets')" class="theme-btn py-2 rounded-xl border-2 border-gray-200 bg-white text-gray-700 font-bold text-sm text-center">
+                    🍦<br>甜點
+                </button>
+            </div>
+        </div>
+
+        <!-- 開始按鈕 -->
+        <button onclick="startGame()" class="w-full py-4 bg-gradient-to-r from-orange-500 to-yellow-500 hover:from-orange-600 hover:to-yellow-600 text-white font-extrabold text-2xl rounded-2xl shadow-lg border-b-8 border-orange-700 active:border-b-2 active:translate-y-1 transition-all duration-100">
+            🌳 開始派對囉！ 🌳
+        </button>
+    </div>
+
+    <div id="game-screen" class="w-full max-w-5xl bg-white/95 backdrop-blur-md rounded-3xl p-4 md:p-6 shadow-2xl border-4 border-emerald-300 my-auto hidden flex flex-col justify-between">
+        
+        <!-- 上方控制區與計分板 -->
+        <div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-4 pb-4 border-b-2 border-dashed border-emerald-200">
+            <!-- 返回大廳與重玩 -->
+            <div class="flex gap-2 w-full md:w-auto justify-between md:justify-start">
+                <button onclick="quitToSetup()" class="py-2 px-4 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold rounded-xl shadow-md flex items-center gap-1 transition-all">
+                    🏠 返回大廳
+                </button>
+                <button onclick="resetGame()" class="py-2 px-4 bg-amber-400 hover:bg-amber-500 text-white font-bold rounded-xl shadow-md flex items-center gap-1 transition-all">
+                    🔄 重新開始
+                </button>
+            </div>
+
+            <!-- 單人模式資訊欄 -->
+            <div id="single-info" class="flex gap-6 text-lg font-bold text-gray-700 items-center bg-blue-50 py-2 px-6 rounded-2xl border-2 border-blue-200">
+                <div>🕒 時間: <span id="timer-display" class="text-blue-600 text-2xl">00:00</span></div>
+                <div>✨ 翻牌次數: <span id="flips-display" class="text-purple-600 text-2xl">0</span></div>
+                <div class="hidden sm:block">🏆 最佳紀錄: <span id="best-display" class="text-amber-600">--:--</span></div>
+            </div>
+
+            <!-- 雙人模式計分板 -->
+            <div id="double-info" class="hidden flex justify-around w-full md:w-auto gap-4">
+                <!-- 玩家 1 (獅子隊) -->
+                <div id="player1-card" class="flex items-center gap-3 bg-rose-50 border-4 border-rose-200 py-2 px-4 md:px-6 rounded-2xl transition-all duration-300">
+                    <span class="text-4xl">🦁</span>
+                    <div>
+                        <div class="text-xs text-gray-500 font-bold">玩家 1</div>
+                        <div class="text-lg font-extrabold text-rose-600">獅子隊</div>
+                        <div class="text-2xl font-black text-rose-700">得分: <span id="p1-score">0</span></div>
+                    </div>
+                </div>
+                <!-- V.S. 裝飾 -->
+                <div class="flex items-center text-2xl font-black text-amber-500">VS</div>
+                <!-- 玩家 2 (兔子隊) -->
+                <div id="player2-card" class="flex items-center gap-3 bg-cyan-50 border-4 border-cyan-200 py-2 px-4 md:px-6 rounded-2xl transition-all duration-300">
+                    <span class="text-4xl">🐰</span>
+                    <div>
+                        <div class="text-xs text-gray-500 font-bold">玩家 2</div>
+                        <div class="text-lg font-extrabold text-cyan-600">兔子隊</div>
+                        <div class="text-2xl font-black text-cyan-700">得分: <span id="p2-score">0</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 奇數牌組特殊提示 -->
+        <div id="odd-magic-tip" class="hidden text-center text-sm md:text-base font-bold text-purple-600 bg-purple-50 border-2 border-purple-200 rounded-xl p-2 mb-4 animate-pulse">
+            🌈 這次牌數是單數喔！裡面藏著一張【幸運彩虹魔法卡】翻到它直接得一分！✨
+        </div>
+
+        <!-- 記憶卡片正方形網格容器 -->
+        <div class="flex-grow flex items-center justify-center p-2">
+            <div id="cards-grid" class="grid gap-2 md:gap-3 w-full max-w-4xl mx-auto justify-center items-center">
+                <!-- 卡牌會由 JS 動態生成並注入在此 -->
+            </div>
+        </div>
+
+        <!-- 底部回合與狀態跑馬燈 -->
+        <div id="turn-banner" class="hidden text-center mt-4 p-3 bg-amber-100 rounded-2xl border-2 border-amber-300">
+            <p id="turn-text" class="text-xl font-extrabold text-amber-800 animate-bounce">
+                現在是 【 🦁 獅子隊 】 的回合，趕快翻牌吧！
+            </p>
+        </div>
+    </div>
+
+    <div id="victory-modal" class="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-white rounded-3xl p-6 md:p-8 max-w-md w-full text-center border-8 border-yellow-400 shadow-2xl relative transform transition-all scale-100">
+            <div class="absolute -top-16 left-1/2 transform -translate-x-1/2 text-7xl animate-bounce-gentle">👑</div>
+            
+            <h2 id="victory-title" class="text-3xl md:text-4xl font-extrabold text-orange-600 mb-2">哇！你太棒了！🎉</h2>
+            <p id="victory-subtitle" class="text-emerald-600 font-bold text-lg mb-6">所有的森林牌子都找齊了！</p>
+            
+            <!-- 單人成績數據 -->
+            <div id="victory-single-stats" class="bg-amber-50 rounded-2xl p-4 border-2 border-amber-200 mb-6 hidden">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <p class="text-gray-500 font-bold text-sm">⏱️ 這次花費時間</p>
+                        <p id="final-time" class="text-2xl font-black text-blue-600">00:00</p>
+                    </div>
+                    <div>
+                        <p class="text-gray-500 font-bold text-sm">✨ 翻牌總次數</p>
+                        <p id="final-flips" class="text-2xl font-black text-purple-600">0次</p>
+                    </div>
+                </div>
+                <div id="new-record-tag" class="mt-3 text-red-500 font-extrabold text-lg hidden animate-pulse">
+                    🏆 恭喜打破最佳紀錄！🎉
+                </div>
+            </div>
+
+            <!-- 雙人成績數據 -->
+            <div id="victory-double-stats" class="bg-cyan-50 rounded-2xl p-4 border-2 border-cyan-200 mb-6 hidden">
+                <div class="text-xl font-extrabold text-cyan-800 mb-3">最終比數</div>
+                <div class="flex justify-around items-center mb-2">
+                    <div class="text-center">
+                        <span class="text-4xl">🦁</span>
+                        <div class="font-bold text-rose-600 text-sm">獅子隊</div>
+                        <div id="v-p1-score" class="text-2xl font-black text-rose-700">0分</div>
+                    </div>
+                    <div class="text-3xl font-black text-gray-400">VS</div>
+                    <div class="text-center">
+                        <span class="text-4xl">🐰</span>
+                        <div class="font-bold text-cyan-600 text-sm">兔子隊</div>
+                        <div id="v-p2-score" class="text-2xl font-black text-cyan-700">0分</div>
+                    </div>
+                </div>
+                <div id="winner-announcement" class="text-2xl font-black text-amber-600 mt-4 border-t-2 border-dashed border-cyan-200 pt-3">
+                    🦁 獅子隊 贏得這場派對！
+                </div>
+            </div>
+
+            <!-- 操作按鈕 -->
+            <div class="flex flex-col gap-3">
+                <button onclick="resetGame()" class="w-full py-4 bg-gradient-to-r from-emerald-400 to-green-500 text-white font-extrabold text-xl rounded-2xl shadow-md border-b-4 border-green-700 active:border-b-0 active:translate-y-1 transition-all">
+                    🎯 再玩一次！
+                </button>
+                <button onclick="quitToSetup()" class="w-full py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold text-lg rounded-2xl transition-all">
+                    🏠 回到主選單
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <footer class="text-center text-xs text-emerald-800/60 font-semibold py-2">
+        🌳 森林動物記憶派對 v1.1 - 親子互動快樂學習 🌳
+    </footer>
+
+    <script>
+        // --- 1. 卡片素材庫定義 (精選高對比且色彩鮮艷的Emoji) ---
+        const Decks = {
+            animals: ['🦁', '🐰', '🐼', '🐯', '🐻', '🦊', '🐘', '🐵', '🐷', '🐸', '🐔', '🦉', '🐨', '🐙', '🐢', '🐬', '🐝', '🐞', '🦖', '🦄', '🦒', '🦓', '🐿️', '🐧', '🦀', '🐳', '🐫', '🦘', '🦥', '🦫', '🐏', '🐎', '🐊', '🐍', '🦎', '🐈', '🐕', '🐂', '🐏', '🐕‍🦺', '🐈‍⬛', '🐖', '🐓', '🦆', '🦢', '🦅', '🦉', '🦇', '🦋', '🐌'],
+            fruits: ['🍎', '🍌', '🍉', '🍇', '🍓', '🍒', '🍍', '🍑', '🍊', '🍋', '🥝', '🍈', '🍐', '🥭', '🥥', '🍅', '🥑', '🥦', '🥕', '🌽', '🌶️', '🥔', '🍠', '🧅', '🧄', '🥯', '🍞', '🥞', '🧇', '🧀', '🍔', '🍟', '🍕', '🌭', '🥪', '🌮', '🍿', '🍘', '🍙', '🍛', '🍜', '🍣', '🍤', '🍥', '🍡', '🥟', '🍢', '🍦', '🍧', '🍨'],
+            vehicles: ['🚗', '🚓', '橫', '🚒', '🚌', '🚕', '🚜', '🚚', '🚲', '🛴', '🛵', '🚂', '✈️', '🚀', '🚁', '🛳️', '🛶', '🚠', '⛵', '🚙', '🏎️', '🏍️', '🚂', '🚆', '🚇', '🚈', '🚌', '🚏', '⛽', '🛞', '⛵', '⛴️', '🛳️', '🛸', '🛰️', '🪐', '⚓', '🚨', '🏁', '🚥', '🚧', '🗺️', '🧭', '🛹', '🛼'],
+            sweets: ['🍦', '🍧', '🍨', '🍩', '🍪', '🎂', '🍰', '🧁', '🥧', '🍫', '🍬', '🍭', '🍮', '🍯', '🍿', '🥞', '🧇', '🍡', '🍵', '🧉', '🥤', '🧃', '🧉', '🥛', '🍼', '🍨', '🍧', '🧁', '🍮', '🎂', '🥧', '🍓', '🍇', '🍒', '🍑', '🍍', '🍉', '🍌', '🍎', '🍐', '🍊', '🍋', '🍈', '🍯']
+        };
+
+        // --- 2. 遊戲核心狀態變數 ---
+        let currentMode = 'single'; // 'single' 或 'double'
+        let currentGridSize = 4;    // 3, 4, 5, 6, 8, 10
+        let currentTheme = 'animals';
+        
+        let cards = [];             // 存放卡片陣列
+        let flippedCards = [];      // 存放當前點開的卡片
+        let matchedPairs = 0;       // 已配對成功的組數
+        let totalPairsNeeded = 0;   // 通關所需的總組數
+        let canFlip = true;         // 防連點機制鎖
+
+        // 奇數牌組輔助狀態
+        let hasMagicCard = false;   // 是否包含魔法彩虹卡
+
+        // 單人模式變數
+        let timerInterval = null;
+        let secondsElapsed = 0;
+        let flipCount = 0;
+        let bestRecordKey = '';     // 紀錄在 localstorage 中的鍵名
+
+        // 雙人模式變數
+        let currentPlayer = 1;      // 當前輪到 1 (獅子) 或 2 (兔子)
+        let player1Score = 0;
+        let player2Score = 0;
+
+        // --- 3. 畫面切換與設定選擇 ---
+        function selectMode(mode) {
+            currentMode = mode;
+            document.querySelectorAll('.mode-btn').forEach(btn => {
+                btn.classList.remove('bg-amber-100', 'border-amber-400', 'text-amber-800', 'scale-105', 'shadow-md');
+                btn.classList.add('bg-gray-50', 'border-gray-200', 'text-gray-500');
+            });
+            const activeBtn = document.getElementById(`btn-mode-${mode}`);
+            activeBtn.classList.remove('bg-gray-50', 'border-gray-200', 'text-gray-500');
+            activeBtn.classList.add('bg-amber-100', 'border-amber-400', 'text-amber-800', 'scale-105', 'shadow-md');
+            AudioSynth.play('flip');
+        }
+
+        function selectGrid(size) {
+            currentGridSize = size;
+            document.querySelectorAll('.grid-btn').forEach(btn => {
+                btn.classList.remove('bg-amber-100', 'border-amber-400', 'text-amber-800', 'scale-105', 'ring-2', 'ring-amber-400');
+                btn.classList.add('bg-white', 'border-gray-200', 'text-gray-700');
+            });
+            event.currentTarget.classList.remove('bg-white', 'border-gray-200', 'text-gray-700');
+            event.currentTarget.classList.add('bg-amber-100', 'border-amber-400', 'text-amber-800', 'scale-105', 'ring-2', 'ring-amber-400');
+            AudioSynth.play('flip');
+        }
+
+        function selectTheme(theme) {
+            currentTheme = theme;
+            document.querySelectorAll('.theme-btn').forEach(btn => {
+                btn.classList.remove('bg-amber-100', 'border-amber-400', 'text-amber-800', 'scale-105', 'ring-2', 'ring-amber-400');
+                btn.classList.add('bg-white', 'border-gray-200', 'text-gray-700');
+            });
+            event.currentTarget.classList.remove('bg-white', 'border-gray-200', 'text-gray-700');
+            event.currentTarget.classList.add('bg-amber-100', 'border-amber-400', 'text-amber-800', 'scale-105', 'ring-2', 'ring-amber-400');
+            AudioSynth.play('flip');
+        }
+
+        // --- 4. 遊戲啟動與狀態控制 ---
+        function startGame() {
+            AudioSynth.play('match');
+            document.getElementById('setup-screen').classList.add('hidden');
+            document.getElementById('game-screen').classList.remove('hidden');
+
+            bestRecordKey = `forest_memory_best_${currentGridSize}x${currentGridSize}_${currentTheme}`;
+
+            resetGameState();
+            setupDashboard();
+            generateCards();
+            renderGrid();
+            startTimer();
+        }
+
+        function quitToSetup() {
+            stopTimer();
+            document.getElementById('game-screen').classList.add('hidden');
+            document.getElementById('victory-modal').classList.add('hidden');
+            document.getElementById('setup-screen').classList.remove('hidden');
+            AudioSynth.play('flip');
+        }
+
+        function resetGame() {
+            stopTimer();
+            document.getElementById('victory-modal').classList.add('hidden');
+            resetGameState();
+            setupDashboard();
+            generateCards();
+            renderGrid();
+            startTimer();
+            AudioSynth.play('match');
+        }
+
+        function resetGameState() {
+            cards = [];
+            flippedCards = [];
+            matchedPairs = 0;
+            canFlip = true;
+            secondsElapsed = 0;
+            flipCount = 0;
+            player1Score = 0;
+            player2Score = 0;
+            currentPlayer = 1;
+        }
+
+        function setupDashboard() {
+            const totalCards = currentGridSize * currentGridSize;
+            hasMagicCard = (totalCards % 2 !== 0); // 奇數格子有魔法卡
+            totalPairsNeeded = Math.floor(totalCards / 2) + (hasMagicCard ? 1 : 0);
+
+            const magicTip = document.getElementById('odd-magic-tip');
+            if (hasMagicCard) {
+                magicTip.classList.remove('hidden');
+            } else {
+                magicTip.classList.add('hidden');
+            }
+
+            if (currentMode === 'single') {
+                document.getElementById('single-info').classList.remove('hidden');
+                document.getElementById('double-info').classList.add('hidden');
+                document.getElementById('turn-banner').classList.add('hidden');
+                document.getElementById('timer-display').innerText = "00:00";
+                document.getElementById('flips-display').innerText = "0";
+
+                const best = localStorage.getItem(bestRecordKey);
+                if (best) {
+                    document.getElementById('best-display').innerText = formatTime(parseInt(best));
+                } else {
+                    document.getElementById('best-display').innerText = "--:--";
+                }
+            } else {
+                document.getElementById('single-info').classList.add('hidden');
+                document.getElementById('double-info').classList.remove('hidden');
+                document.getElementById('turn-banner').classList.remove('hidden');
+                document.getElementById('p1-score').innerText = "0";
+                document.getElementById('p2-score').innerText = "0";
+                updatePlayerTurnUI();
+            }
+        }
+
+        function updatePlayerTurnUI() {
+            const p1Card = document.getElementById('player1-card');
+            const p2Card = document.getElementById('player2-card');
+            const turnText = document.getElementById('turn-text');
+
+            if (currentPlayer === 1) {
+                p1Card.classList.add('active-player-glow', 'bg-rose-100');
+                p1Card.classList.remove('border-rose-200');
+                p1Card.classList.add('border-rose-400');
+
+                p2Card.classList.remove('active-player-glow', 'bg-cyan-100', 'border-cyan-400');
+                p2Card.classList.add('border-cyan-200', 'bg-cyan-50');
+
+                turnText.innerHTML = "現在是 【 🦁 獅子隊 】 的回合，趕快翻牌吧！";
+                turnText.className = "text-xl font-extrabold text-rose-600 animate-bounce";
+            } else {
+                p2Card.classList.add('active-player-glow', 'bg-cyan-100');
+                p2Card.classList.remove('border-cyan-200');
+                p2Card.classList.add('border-cyan-400');
+
+                p1Card.classList.remove('active-player-glow', 'bg-rose-100', 'border-rose-400');
+                p1Card.classList.add('border-rose-200', 'bg-rose-50');
+
+                turnText.innerHTML = "現在是 【 🐰 兔子隊 】 的回合，看你的囉！";
+                turnText.className = "text-xl font-extrabold text-cyan-600 animate-bounce";
+            }
+        }
+
+        function generateCards() {
+            const totalCards = currentGridSize * currentGridSize;
+            const pairsCount = Math.floor(totalCards / 2);
+            
+            const deckSource = [...Decks[currentTheme]];
+            shuffleArray(deckSource);
+
+            const selectedEmojis = deckSource.slice(0, pairsCount);
+            
+            let gameItems = [];
+            selectedEmojis.forEach((emoji, index) => {
+                gameItems.push({ id: `pair-${index}-a`, emoji: emoji, isMagic: false });
+                gameItems.push({ id: `pair-${index}-b`, emoji: emoji, isMagic: false });
+            });
+
+            if (hasMagicCard) {
+                gameItems.push({ id: 'magic-card-rainbow', emoji: '🌈', isMagic: true });
+            }
+
+            shuffleArray(gameItems);
+            cards = gameItems;
+        }
+
+        function shuffleArray(arr) {
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+        }
+
+        // --- 5. 渲染網格：完美正方形 + 超大圖案適配 ---
+        function renderGrid() {
+            const gridContainer = document.getElementById('cards-grid');
+            gridContainer.innerHTML = '';
+
+            // 使用 CSS Grid 欄寬度自適應
+            gridContainer.style.gridTemplateColumns = `repeat(${currentGridSize}, minmax(0, 1fr))`;
+            
+            // 根據格子數量動態調整 Emoji 圖案和問號 ❓ 的字型大小，讓圖案盡量撐滿正方形！
+            let emojiSizeClass = '';
+            let questionSizeClass = '';
+
+            if (currentGridSize <= 3) {
+                // 3x3 超級大圖案 (無比醒目！)
+                emojiSizeClass = 'text-7xl sm:text-8xl md:text-9xl';
+                questionSizeClass = 'text-5xl sm:text-6xl md:text-7xl';
+            } else if (currentGridSize === 4) {
+                // 4x4 經典大圖案
+                emojiSizeClass = 'text-6xl sm:text-7xl md:text-8xl';
+                questionSizeClass = 'text-4xl sm:text-5xl md:text-6xl';
+            } else if (currentGridSize <= 6) {
+                // 5x5 與 6x6
+                emojiSizeClass = 'text-4xl sm:text-5xl md:text-6xl';
+                questionSizeClass = 'text-3xl sm:text-4xl md:text-5xl';
+            } else if (currentGridSize <= 8) {
+                // 8x8 記憶王
+                emojiSizeClass = 'text-2xl sm:text-3xl md:text-4xl';
+                questionSizeClass = 'text-xl sm:text-2xl md:text-3xl';
+            } else {
+                // 10x10 終極模式
+                emojiSizeClass = 'text-lg sm:text-xl md:text-2xl';
+                questionSizeClass = 'text-sm sm:text-base md:text-lg';
+            }
+
+            cards.forEach((card, index) => {
+                const cardEl = document.createElement('div');
+                // 採用 relative w-full aspect-square，確保在所有解析度下皆為【絕對完美正方形】
+                cardEl.className = `card-container relative w-full aspect-square cursor-pointer`;
+                cardEl.dataset.index = index;
+                cardEl.dataset.id = card.id;
+
+                // 彩虹魔法卡獨家炫彩效果
+                const backStyleClass = card.isMagic ? 'magic-card' : 'text-slate-800';
+
+                cardEl.innerHTML = `
+                    <div class="card-inner">
+                        <!-- 卡片背面 (問號與精美漸層背景) -->
+                        <div class="card-front">
+                            <span class="${questionSizeClass} font-bold select-none">❓</span>
+                        </div>
+                        <!-- 卡片正面 (呈現超大 Emoji 圖案) -->
+                        <div class="card-back ${backStyleClass}">
+                            <span class="${emojiSizeClass} select-none leading-none flex items-center justify-center w-full h-full">${card.emoji}</span>
+                        </div>
+                    </div>
+                `;
+
+                // 滑鼠點擊與行動裝置輕觸通用
+                cardEl.addEventListener('click', () => handleCardClick(cardEl, index));
+                gridContainer.appendChild(cardEl);
+            });
+        }
+
+        // --- 6. 卡片點擊與配對判斷邏輯 ---
+        function handleCardClick(cardEl, index) {
+            if (!canFlip) return;
+            if (cardEl.classList.contains('flipped') || cardEl.classList.contains('matched')) return;
+
+            const cardData = cards[index];
+
+            if (currentMode === 'single') {
+                flipCount++;
+                document.getElementById('flips-display').innerText = flipCount;
+            }
+
+            cardEl.classList.add('flipped');
+            
+            if (cardData.isMagic) {
+                // 魔法彩虹卡觸發：連續向上炫爛音效與閃爍特效！
+                AudioSynth.play('magic');
+                triggerMagicSparkle(cardEl);
+                canFlip = false;
+
+                setTimeout(() => {
+                    cardEl.classList.add('matched');
+                    cardEl.style.opacity = '0.5';
+                    cardEl.style.pointerEvents = 'none';
+                    
+                    matchedPairs++;
+                    
+                    if (currentMode === 'double') {
+                        if (currentPlayer === 1) {
+                            player1Score++;
+                            document.getElementById('p1-score').innerText = player1Score;
+                        } else {
+                            player2Score++;
+                            document.getElementById('p2-score').innerText = player2Score;
+                        }
+                    }
+
+                    canFlip = true;
+                    checkGameEnd();
+                }, 1000);
+
+                return;
+            }
+
+            AudioSynth.play('flip');
+            flippedCards.push({ element: cardEl, data: cardData });
+
+            if (flippedCards.length === 2) {
+                canFlip = false;
+                const card1 = flippedCards[0];
+                const card2 = flippedCards[1];
+
+                if (card1.data.emoji === card2.data.emoji) {
+                    // 配對成功
+                    setTimeout(() => {
+                        card1.element.classList.add('matched');
+                        card2.element.classList.add('matched');
+                        
+                        card1.element.style.opacity = '0.5';
+                        card2.element.style.opacity = '0.5';
+
+                        AudioSynth.play('match');
+                        matchedPairs++;
+
+                        if (currentMode === 'double') {
+                            if (currentPlayer === 1) {
+                                player1Score++;
+                                document.getElementById('p1-score').innerText = player1Score;
+                            } else {
+                                player2Score++;
+                                document.getElementById('p2-score').innerText = player2Score;
+                            }
+                        }
+
+                        flippedCards = [];
+                        canFlip = true;
+                        checkGameEnd();
+                    }, 600);
+                } else {
+                    // 配對失敗
+                    setTimeout(() => {
+                        card1.element.classList.remove('flipped');
+                        card2.element.classList.remove('flipped');
+                        
+                        AudioSynth.play('mismatch');
+
+                        if (currentMode === 'double') {
+                            currentPlayer = currentPlayer === 1 ? 2 : 1;
+                            updatePlayerTurnUI();
+                        }
+
+                        flippedCards = [];
+                        canFlip = true;
+                    }, 1200);
+                }
+            }
+        }
+
+        function triggerMagicSparkle(element) {
+            const inner = element.querySelector('.card-back');
+            inner.style.border = '6px solid #f43f5e';
+            let flashCount = 0;
+            const flashInterval = setInterval(() => {
+                inner.style.borderColor = flashCount % 2 === 0 ? '#10b981' : '#f43f5e';
+                flashCount++;
+                if (flashCount > 6) {
+                    clearInterval(flashInterval);
+                    inner.style.borderColor = '#e11d48';
+                }
+            }, 150);
+        }
+
+        // --- 7. 計時器控制 ---
+        function startTimer() {
+            secondsElapsed = 0;
+            if (currentMode === 'single') {
+                timerInterval = setInterval(() => {
+                    secondsElapsed++;
+                    document.getElementById('timer-display').innerText = formatTime(secondsElapsed);
+                }, 1000);
+            }
+        }
+
+        function stopTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+        }
+
+        function formatTime(totalSeconds) {
+            const mins = Math.floor(totalSeconds / 60);
+            const secs = totalSeconds % 60;
+            return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        // --- 8. 遊戲結束通關與計分統計 ---
+        function checkGameEnd() {
+            if (matchedPairs === totalPairsNeeded) {
+                stopTimer();
+                AudioSynth.play('win');
+                startConfetti();
+
+                setTimeout(() => {
+                    const modal = document.getElementById('victory-modal');
+                    const singleStats = document.getElementById('victory-single-stats');
+                    const doubleStats = document.getElementById('victory-double-stats');
+                    
+                    if (currentMode === 'single') {
+                        singleStats.classList.remove('hidden');
+                        doubleStats.classList.add('hidden');
+
+                        document.getElementById('final-time').innerText = formatTime(secondsElapsed);
+                        document.getElementById('final-flips').innerText = `${flipCount} 次`;
+
+                        const best = localStorage.getItem(bestRecordKey);
+                        const recordTag = document.getElementById('new-record-tag');
+                        if (!best || secondsElapsed < parseInt(best)) {
+                            localStorage.setItem(bestRecordKey, secondsElapsed);
+                            recordTag.classList.remove('hidden');
+                        } else {
+                            recordTag.classList.add('hidden');
+                        }
+                    } else {
+                        singleStats.classList.add('hidden');
+                        doubleStats.classList.remove('hidden');
+
+                        document.getElementById('v-p1-score').innerText = `${player1Score} 分`;
+                        document.getElementById('v-p2-score').innerText = `${player2Score} 分`;
+
+                        const winnerAnnounce = document.getElementById('winner-announcement');
+                        if (player1Score > player2Score) {
+                            winnerAnnounce.innerHTML = "👑 恭喜 【 🦁 獅子隊 】 獲勝囉！";
+                            winnerAnnounce.className = "text-2xl font-black text-rose-600 mt-4 border-t-2 border-dashed border-cyan-200 pt-3";
+                        } else if (player2Score > player1Score) {
+                            winnerAnnounce.innerHTML = "👑 恭喜 【 🐰 兔子隊 】 獲勝囉！";
+                            winnerAnnounce.className = "text-2xl font-black text-cyan-600 mt-4 border-t-2 border-dashed border-cyan-200 pt-3";
+                        } else {
+                            winnerAnnounce.innerHTML = "🤝 太厲害了！大家平手！";
+                            winnerAnnounce.className = "text-2xl font-black text-amber-500 mt-4 border-t-2 border-dashed border-cyan-200 pt-3";
+                        }
+                    }
+
+                    modal.classList.remove('hidden');
+                }, 800);
+            }
+        }
+
+        // --- 9. 全螢幕五彩彩帶慶祝動畫 ---
+        const canvas = document.getElementById('confetti-canvas');
+        const ctx = canvas.getContext('2d');
+        let confetti = [];
+        let confettiActive = false;
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        function startConfetti() {
+            confettiActive = true;
+            confetti = [];
+            for (let i = 0; i < 150; i++) {
+                confetti.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height - canvas.height,
+                    r: Math.random() * 6 + 4,
+                    d: Math.random() * canvas.height,
+                    color: `hsl(${Math.random() * 360}, 90%, 65%)`,
+                    tilt: Math.random() * 10 - 5,
+                    tiltAngleIncremental: Math.random() * 0.07 + 0.02,
+                    tiltAngle: 0
+                });
+            }
+            animateConfetti();
+            setTimeout(() => { confettiActive = false; }, 7000);
+        }
+
+        function animateConfetti() {
+            if (!confettiActive && confetti.length === 0) {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                return;
+            }
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            for (let i = 0; i < confetti.length; i++) {
+                const p = confetti[i];
+                p.tiltAngle += p.tiltAngleIncremental;
+                p.y += (Math.cos(p.d) + 3 + p.r / 2) / 2;
+                p.x += Math.sin(p.tiltAngle);
+                p.tilt = Math.sin(p.tiltAngle - i / 3) * 15;
+
+                ctx.beginPath();
+                ctx.lineWidth = p.r;
+                ctx.strokeStyle = p.color;
+                ctx.moveTo(p.x + p.tilt + p.r / 2, p.y);
+                ctx.lineTo(p.x + p.tilt, p.y + p.tilt + p.r / 2);
+                ctx.stroke();
+
+                if (p.y > canvas.height) {
+                    if (confettiActive) {
+                        confetti[i] = {
+                            x: Math.random() * canvas.width,
+                            y: -20,
+                            r: p.r,
+                            d: p.d,
+                            color: p.color,
+                            tilt: p.tilt,
+                            tiltAngleIncremental: p.tiltAngleIncremental,
+                            tiltAngle: p.tiltAngle
+                        };
+                    } else {
+                        confetti.splice(i, 1);
+                        i--;
+                    }
+                }
+            }
+            requestAnimationFrame(animateConfetti);
+        }
+    </script>
+</body>
+</html>
