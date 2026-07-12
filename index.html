@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>魔法數字樂園 | 兒童雙語數學思維啟蒙遊戲</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Noto+Sans+TC:wght=500;700;900&display=swap');
+        
+        body {
+            font-family: 'Noto Sans TC', 'Fredoka One', sans-serif;
+            background: linear-gradient(135deg, #FFF9E6 0%, #E8F5E9 100%);
+            touch-action: manipulation;
+        }
+
+        /* 可愛漂浮動畫 */
+        @keyframes float-slow {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-15px) rotate(3deg); }
+        }
+        @keyframes float-fast {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-10px) rotate(-3deg); }
+        }
+
+        .float-slow {
+            animation: float-slow 6s ease-in-out infinite;
+        }
+        .float-fast {
+            animation: float-fast 4s ease-in-out infinite;
+        }
+
+        /* 滑鼠懸停縮放 */
+        .hover-pop {
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .hover-pop:hover {
+            transform: scale(1.05) translateY(-5px);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between select-none relative overflow-x-hidden text-gray-800">
+
+    <!-- 背景動態漂浮幾何與表情裝飾 -->
+    <div class="absolute inset-0 pointer-events-none overflow-hidden z-0">
+        <span class="absolute text-5xl float-slow opacity-25" style="top: 15%; left: 8%;">🍓</span>
+        <span class="absolute text-6xl float-fast opacity-25" style="top: 25%; right: 10%;">🎈</span>
+        <span class="absolute text-5xl float-slow opacity-25" style="top: 65%; left: 12%;">🍭</span>
+        <span class="absolute text-7xl float-fast opacity-20" style="bottom: 15%; right: 15%;">🍇</span>
+        <span class="absolute text-5xl float-slow opacity-20" style="bottom: 25%; left: 45%;">🦁</span>
+        <span class="absolute text-6xl float-fast opacity-20" style="top: 8%; left: 60%;">🥑</span>
+        <span class="absolute text-5xl float-slow opacity-25" style="bottom: 55%; right: 5%;">🐰</span>
+    </div>
+
+    <!-- 頂部導航列 -->
+    <header class="p-4 md:px-8 flex justify-between items-center bg-white/70 backdrop-blur-md shadow-sm z-10">
+        <div class="flex items-center gap-3">
+            <span class="text-4xl">👑</span>
+            <h1 class="text-2xl md:text-3xl font-extrabold text-amber-500 tracking-wider">魔法數字樂園</h1>
+        </div>
+        <div class="flex items-center gap-4">
+            <a href="https://github.com/a355337/a355337.github.io" target="_blank" class="text-gray-600 hover:text-emerald-600 transition flex items-center gap-1 font-bold text-sm md:text-base">
+                <svg class="w-6 h-6 inline-block" fill="currentColor" viewBox="0 0 24 24">
+                    <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.166 6.839 9.489.5.092.682-.217.682-.483 0-.237-.008-.866-.013-1.7-2.782.603-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.464-1.11-1.464-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.831.092-.646.35-1.086.636-1.336-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.579.688.481C19.138 20.161 22 16.418 22 12c0-5.523-4.477-10-10-10z" />
+                </svg>
+                <span>GitHub</span>
+            </a>
+        </div>
+    </header>
+
+    <!-- 主頁內容 -->
+    <main class="flex-grow flex flex-col items-center justify-center p-6 md:p-12 z-10 w-full max-w-6xl mx-auto gap-12">
+        
+        <!-- 歡迎區與呼籲按鈕 -->
+        <section class="text-center flex flex-col items-center gap-6 max-w-3xl">
+            <div class="float-slow text-7xl md:text-8xl select-none mb-2">🦁🐰🍇🍭🎈</div>
+            <h1 class="text-4xl md:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 via-teal-500 to-amber-500 tracking-wide leading-tight drop-shadow-sm">
+                歡迎來到魔法數字樂園！
+            </h1>
+            <p class="text-lg md:text-2xl text-gray-600 font-bold leading-relaxed px-4">
+                一個專為兒童與幼兒設計的 <span class="text-pink-500 underline decoration-wavy decoration-2">雙語趣味互動</span> 數數與數學思維啟蒙遊戲！
+            </p>
+            
+            <div class="mt-4">
+                <a href="./count_object.html" class="inline-flex items-center gap-4 bg-gradient-to-r from-pink-400 to-rose-400 hover:from-pink-500 hover:to-rose-500 text-white text-2xl md:text-3xl font-black py-5 px-12 rounded-3xl shadow-lg border-b-8 border-rose-600 transform transition hover-pop active:scale-95">
+                    <span class="text-4xl">🎮</span>
+                    <span>立即開啟挑戰</span>
+                </a>
+            </div>
+        </section>
+
+        <!-- 遊戲三大模式介紹 -->
+        <section class="w-full flex flex-col gap-8">
+            <h2 class="text-3xl font-black text-emerald-700 text-center mb-2">🎈 探索三大精彩遊戲模式 🎈</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- 遊戲 1 -->
+                <div class="bg-white rounded-3xl border-4 border-pink-200 p-6 flex flex-col items-center justify-between shadow-xl hover-pop">
+                    <div class="flex flex-col items-center text-center gap-4">
+                        <span class="text-6xl p-4 bg-pink-100 rounded-full">🍓</span>
+                        <h3 class="text-2xl font-black text-pink-600">水果大混合</h3>
+                        <p class="text-gray-600 font-bold leading-relaxed">
+                            多樣水果不規則散落！點選水果時會有對應的中英文發音與輔助點數，適合初學數數的小朋友，還有反應時間的星星加成挑戰喔！
+                        </p>
+                    </div>
+                    <div class="mt-6 w-full text-center">
+                        <span class="bg-pink-100 text-pink-600 font-bold text-sm px-4 py-2 rounded-full border border-pink-300">
+                            難度：🔥 趣味挑戰
+                        </span>
+                    </div>
+                </div>
+
+                <!-- 遊戲 2 -->
+                <div class="bg-white rounded-3xl border-4 border-sky-200 p-6 flex flex-col items-center justify-between shadow-xl hover-pop">
+                    <div class="flex flex-col items-center text-center gap-4">
+                        <span class="text-6xl p-4 bg-sky-100 rounded-full">🎈</span>
+                        <h3 class="text-2xl font-black text-sky-600">數字氣球碰！</h3>
+                        <p class="text-gray-600 font-bold leading-relaxed">
+                            五彩繽紛的氣球從下方不斷飄上來！點按聲音重播並在限時中精準找出帶有指定數字的氣球，快來測試你的眼手協調度！
+                        </p>
+                    </div>
+                    <div class="mt-6 w-full text-center">
+                        <span class="bg-sky-100 text-sky-600 font-bold text-sm px-4 py-2 rounded-full border border-sky-300">
+                            難度：⚡ 快速反應
+                        </span>
+                    </div>
+                </div>
+
+                <!-- 遊戲 3 -->
+                <div class="bg-white rounded-3xl border-4 border-amber-200 p-6 flex flex-col items-center justify-between shadow-xl hover-pop">
+                    <div class="flex flex-col items-center text-center gap-4">
+                        <span class="text-6xl p-4 bg-amber-100 rounded-full">⚖️</span>
+                        <h3 class="text-2xl font-black text-amber-600">糖果誰最多？</h3>
+                        <p class="text-gray-600 font-bold leading-relaxed">
+                            左邊還是右邊？比一比兩邊的甜點數量，點擊多的一方來得分。培養直觀的數感認知、對大小多寡的概念打下紮實基礎！
+                        </p>
+                    </div>
+                    <div class="mt-6 w-full text-center">
+                        <span class="bg-amber-100 text-amber-600 font-bold text-sm px-4 py-2 rounded-full border border-amber-300">
+                            難度：🧠 數感培養
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 遊戲特點說明 -->
+        <section class="bg-white/80 backdrop-blur-md rounded-3xl border-4 border-emerald-200 p-8 w-full max-w-4xl shadow-lg">
+            <h2 class="text-2xl md:text-3xl font-black text-emerald-700 text-center mb-6">✨ 遊戲特色特點 ✨</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="flex items-start gap-4">
+                    <span class="text-3xl">🗣️</span>
+                    <div>
+                        <h4 class="text-xl font-bold text-emerald-600 mb-1">中英雙語，語音導覽</h4>
+                        <p class="text-gray-600 text-sm font-semibold">
+                            全遊戲關卡均備有甜美自然的合成語音。支援一鍵中英文切換，並且有「重播聲音」按鈕，讓孩子在遊玩中不知不覺熟悉英文字彙！
+                        </p>
+                    </div>
+                </div>
+                <div class="flex items-start gap-4">
+                    <span class="text-3xl">⭐</span>
+                    <div>
+                        <h4 class="text-xl font-bold text-emerald-600 mb-1">即時獎勵，激發動力</h4>
+                        <p class="text-gray-600 text-sm font-semibold">
+                            答對即可獲得閃亮的金色星星，回答越快還能獲得額外的連勝星星加成。在通關結算時，還可以放聲歡呼或欣賞華麗的紙花慶祝特效！
+                        </p>
+                    </div>
+                </div>
+                <div class="flex items-start gap-4">
+                    <span class="text-3xl">🎨</span>
+                    <div>
+                        <h4 class="text-xl font-bold text-emerald-600 mb-1">可愛插畫，繽紛體驗</h4>
+                        <p class="text-gray-600 text-sm font-semibold">
+                            為學齡前兒童客製化的色彩和圓角卡片設計，精緻可愛的各種擬真水果與糖果圖示，極具吸引力，讓學習就像逛遊樂園！
+                        </p>
+                    </div>
+                </div>
+                <div class="flex items-start gap-4">
+                    <span class="text-3xl">📱</span>
+                    <div>
+                        <h4 class="text-xl font-bold text-emerald-600 mb-1">靈活觸控，無廣告無負擔</h4>
+                        <p class="text-gray-600 text-sm font-semibold">
+                            針對行動裝置（iPad/平板、手機）優化了觸控體驗，沒有惱人的廣告、也沒有不合適的內容，是一個乾淨、安全且專注的學習空間。
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- 頁尾 -->
+    <footer class="bg-emerald-950 text-emerald-100 p-6 text-center z-10 w-full border-t-4 border-emerald-800">
+        <p class="font-bold text-sm md:text-base">
+            © 2026 魔法數字樂園 🌈 兒童雙語數學思維啟蒙遊戲. 保留所有權利。
+        </p>
+        <p class="text-xs text-emerald-300/80 mt-2 font-semibold">
+            由 a355337 開發與維護。歡迎造訪本專案的 <a href="https://github.com/a355337/a355337.github.io" target="_blank" class="underline text-amber-300 hover:text-amber-200 transition">GitHub 原始碼倉庫</a> 交流與反饋！
+        </p>
+    </footer>
+
+</body>
+</html>
