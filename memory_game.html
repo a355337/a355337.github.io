@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <!-- 💡 核心新增：強迫瀏覽器每次都向伺服器檢查新版本，避免快取舊網頁 -->
+    <!-- 💡 核心設定：強迫瀏覽器每次都向伺服器檢查新版本，避免 github.io 快取舊網頁 -->
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
@@ -294,7 +294,7 @@
             🌳 開始派對囉！ 🌳
         </button>
 
-        <!-- 💡 核心新增：強制清除快取並檢查更新按鈕 (專門解決 GitHub Pages 快取問題) -->
+        <!-- 核心新增：強制清除快取並檢查更新按鈕 (專門解決 GitHub Pages 快取問題) -->
         <div class="mt-5 text-center border-t border-dashed border-amber-200 pt-4">
             <button type="button" onclick="forceReload()" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 active:scale-95 text-gray-500 hover:text-gray-700 text-xs font-bold rounded-full border border-gray-300 transition-all shadow-sm flex items-center justify-center gap-1.5 mx-auto">
                 🔄 檢查最新版本 (強制排除快取)
@@ -356,7 +356,7 @@
         <!-- 記憶卡片正方形網格容器 -->
         <div class="flex-grow flex items-center justify-center p-1 overflow-hidden min-h-0">
             <div id="cards-grid" class="grid gap-1.5 md:gap-2.5 mx-auto justify-center items-center transition-all duration-300">
-                <!-- 卡牌會由 JS 動態生成並注入在此 -->
+                <!-- 卡牌由 JS 動態生成 -->
             </div>
         </div>
 
@@ -368,7 +368,7 @@
         </div>
     </div>
 
-    <!-- 💡 核心新增：字母首音回顧考題挑戰區 -->
+    <!-- 字母首音回顧考題挑戰區 -->
     <div id="quiz-screen" class="w-full max-w-2xl h-full max-h-[90vh] bg-gradient-to-b from-amber-50 to-orange-50 rounded-3xl p-4 md:p-6 shadow-2xl border-8 border-amber-300 my-auto hidden flex flex-col justify-between overflow-y-auto">
         <div class="text-center flex-shrink-0">
             <h2 class="text-2xl md:text-3xl font-extrabold text-orange-600 mb-1">🧠 森林字母小達人挑戰！</h2>
@@ -416,7 +416,7 @@
             <!-- 關閉按鈕 -->
             <button id="word-card-close-btn" class="absolute top-3 right-3 text-2xl font-bold text-amber-600 hover:text-amber-800 bg-white/80 rounded-full w-8 h-8 flex items-center justify-center">×</button>
             
-            <!-- 💡 核心新增：單字第一個英文字母大寫（黃金泡泡） -->
+            <!-- 首字母大寫（黃金泡泡） -->
             <div id="word-first-letter" class="mx-auto w-16 h-16 rounded-full bg-gradient-to-tr from-yellow-400 to-amber-500 border-4 border-white text-white flex items-center justify-center text-4xl font-extrabold shadow-lg mb-1 animate-bounce-gentle select-none">
                 L
             </div>
@@ -424,7 +424,7 @@
             <!-- 大 Emoji 展示 -->
             <div id="word-emoji" class="text-7xl md:text-8xl my-2 select-none animate-bounce-gentle">🦁</div>
             
-            <!-- 英文單字（大字） -->
+            <!-- 英文單字 -->
             <div class="flex items-center justify-center gap-2 mt-1">
                 <span id="word-english" class="text-4xl font-extrabold text-blue-600 tracking-wide">Lion</span>
                 <!-- 喇叭朗讀按鈕 (點擊重播 1 次) -->
@@ -512,7 +512,7 @@
         const Decks = {
             animals: ['🦁', '🐰', '🐼', '🐯', '🐻', '🦊', '🐘', '🐵', '🐷', '🐸', '🐔', '🦉', '🐨', '🐙', '🐢', '🐬', '🐝', '🐞', '🦖', '🦄', '🦒', '🦓', '🐿️', '🐧', '🦀', '🐳', '🐫', '🦘', '🦥', '🦫', '🐏', '🐎', '🐊', '🐍', '🦎', '🐈', '🐕', '🐂', '🐓', '🦆', '🦢', '🦅', '🦇', '🦋', '🐌'],
             fruits: ['🍎', '🍌', '🍉', '🍇', '🍓', '🍒', '🍍', '🍑', '🍊', '🍋', '🥝', '🍈', '🍐', '🥭', '🥥', '🍅', '🥑', '🥦', '🥕', '🌽', '🌶️', '🥔', '🍠', '🧅', '🧄', '🥯', '🍞', '🥞', '🧇', '🧀', '🍔', '🍟', '🍕', '🌭', '🥪', '🌮', '🍿', '🍘', '🍙', '🍛', '🍜', '🍣', '🍤', '🍥', '🍡', '🥟', '🍢'],
-            vehicles: ['🚗', '🚓', '🚒', '🚌', '🚕', '🚜', '🚚', '🚲', '🛴', '🛵', '🚂', '✈️', '🚀', '🚁', '🛳️', '🛶', '🚠', '⛵', '🚙', '🏎️', '🏍️', '🚆', '🚇', '🚈', '🚌', '🚏', '⛽', '🛞', '🛸', '🛰️', '🪐', '⚓', '🚨', '🏁', '🚥', '🚧', '🗺️', '🧭', '🛹', '🛼'],
+            vehicles: ['🚗', '🚓', '🚒', '🚌', '🚕', '🚜', '🚚', '🚲', '🛴', '🛵', '🚂', '✈️', '🚀', '🚁', '🛳️', '🛶', '🚠', '⛵', '🚙', '🏎️', '🏍️', '🚆', '🚇', '🚈', '🚏', '⛽', '🛞', '🛸', '🛰️', '🪐', '⚓', '🚨', '🏁', '🚥', '🚧', '🗺️', '🧭', '🛹', '🛼'],
             sweets: ['🍦', '🍧', '🍨', '🍩', '🍪', '🎂', '🍰', '🧁', '🥧', '🍫', '🍬', '🍭', '🍮', '🍯', '🍿', '🥞', '🧇', '🍡', '🍵', '🧉', '🥤', '🧃', '🥛', '🍼']
         };
 
@@ -705,6 +705,7 @@
         let remainingQuizWords = []; // 目前尚未答對的單字題庫列表
         let currentQuizIndex = 0;   // 當前挑戰的單字索引
         let isQuizAnsweringBlocked = false; // 答對發音期間鎖定選項
+        let quizSpeechTimeout = null; // 💡 核心：等待作答時的持續朗讀計時器
 
         // 單人模式變數
         let timerInterval = null;
@@ -719,11 +720,9 @@
 
         // 💡 核心新增：強制重新讀取、避開快取的方法
         function forceReload() {
-            // 使用內建音效輔助提示點擊
             AudioSynth.play('flip');
-            // 清理掉所有目前的語音播放，防止當機
             cancelAllPronunciation();
-            // 在網址後面附加毫秒級 timestamp 時間戳記，迫使伺服器（特別是 GitHub Pages）提供全新資料而非 Cache 舊版
+            stopQuizContinuousSpeech();
             const cleanUrl = window.location.origin + window.location.pathname;
             window.location.href = cleanUrl + '?nocache=' + Date.now();
         }
@@ -788,6 +787,7 @@
         function quitToSetup() {
             stopTimer();
             cancelAllPronunciation();
+            stopQuizContinuousSpeech(); // 💡 離開時停止考題循環發音
             document.getElementById('game-screen').classList.add('hidden');
             document.getElementById('quiz-screen').classList.add('hidden');
             document.getElementById('victory-modal').classList.add('hidden');
@@ -798,6 +798,7 @@
         function resetGame() {
             stopTimer();
             cancelAllPronunciation();
+            stopQuizContinuousSpeech(); // 💡 重來時停止考題循環發音
             document.getElementById('quiz-screen').classList.add('hidden');
             document.getElementById('victory-modal').classList.add('hidden');
             resetGameState();
@@ -1011,7 +1012,49 @@
             }
         }
 
-        // 💡 核心優化：念三次且每次間隔兩秒
+        // 💡 核心：等待作答時，持續朗讀單字，且單字念完後間隔 1 秒再念下一次
+        function startQuizContinuousSpeech(englishText) {
+            stopQuizContinuousSpeech();
+            
+            function speakLoop() {
+                const isQuizActive = !document.getElementById('quiz-screen').classList.contains('hidden');
+                if (isQuizActive && !isQuizAnsweringBlocked) {
+                    if ('speechSynthesis' in window) {
+                        window.speechSynthesis.cancel(); // 確保不與前一次重疊
+                        const utterance = new SpeechSynthesisUtterance(englishText);
+                        utterance.lang = 'en-US';
+                        utterance.rate = 0.75;
+                        utterance.pitch = 1.1;
+                        
+                        // 當發音「完整結束」後，等待 1 秒再次發音
+                        utterance.onend = function() {
+                            quizSpeechTimeout = setTimeout(speakLoop, 1000);
+                        };
+                        
+                        // 異常防護：若被取消或失敗，1 秒後重試
+                        utterance.onerror = function() {
+                            quizSpeechTimeout = setTimeout(speakLoop, 1000);
+                        };
+                        
+                        window.speechSynthesis.speak(utterance);
+                    }
+                }
+            }
+            speakLoop();
+        }
+
+        // 💡 核心：完全停止等待作答時的持續發音與計時排程
+        function stopQuizContinuousSpeech() {
+            if (quizSpeechTimeout) {
+                clearTimeout(quizSpeechTimeout);
+                quizSpeechTimeout = null;
+            }
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+            }
+        }
+
+        // 💡 核心優化：唸三次且每次間隔兩秒
         function speakWordThreeTimes(englishText) {
             cancelAllPronunciation(); // 先清空前一次的所有朗讀
             
@@ -1055,7 +1098,7 @@
             const wordData = TranslationDb[emoji] || { en: 'Magic Card', zh: '彩虹魔法卡' };
             currentActiveEnglishWord = wordData.en;
 
-            // 💡 核心優化：提取首字母大寫並填入頂部黃金泡泡
+            // 提取首字母大寫並填入頂部黃金泡泡
             const firstLetter = wordData.en.trim().charAt(0).toUpperCase();
             document.getElementById('word-first-letter').innerText = firstLetter;
 
@@ -1066,7 +1109,7 @@
             const modal = document.getElementById('word-card-modal');
             modal.classList.remove('hidden');
 
-            // 💡 朗讀 3 次
+            // 朗讀 3 次
             speakWordThreeTimes(wordData.en);
 
             // 啟動 6 秒進度條動畫
@@ -1243,9 +1286,8 @@
             return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
         }
 
-        // --- 8. 💡 核心優化：首音回顧考題邏輯 ---
+        // --- 8. 核心新增：首音回顧考題邏輯 ---
         function startReviewQuiz() {
-            // 收集這局配對成功的非魔法Emoji（保證題庫唯一性與中英庫一致性）
             const matchedSet = new Set();
             cards.forEach(card => {
                 if (!card.isMagic && TranslationDb[card.emoji]) {
@@ -1257,12 +1299,10 @@
             currentQuizIndex = 0;
 
             if (remainingQuizWords.length === 0) {
-                // 如果沒有能考的（例如超奇葩狀況），直接過關
                 showVictoryModal();
                 return;
             }
 
-            // 切換畫面：隱藏遊戲畫面，顯示考題畫面
             document.getElementById('game-screen').classList.add('hidden');
             document.getElementById('quiz-screen').classList.remove('hidden');
 
@@ -1276,13 +1316,11 @@
             document.getElementById('quiz-feedback').innerText = "請選擇正確的第一個字母開頭：";
             document.getElementById('quiz-feedback').className = "text-sm md:text-base font-extrabold text-amber-700 mt-4 h-6";
 
-            // 如果全部答對了，完成挑戰！
             if (remainingQuizWords.length === 0) {
                 showVictoryModal();
                 return;
             }
 
-            // 超界防護（循環指針）
             if (currentQuizIndex >= remainingQuizWords.length) {
                 currentQuizIndex = 0;
             }
@@ -1290,12 +1328,10 @@
             const currentEmoji = remainingQuizWords[currentQuizIndex];
             const wordData = TranslationDb[currentEmoji];
 
-            // 題目資訊更新
             document.getElementById('quiz-remaining-count').innerText = remainingQuizWords.length;
             document.getElementById('quiz-emoji').innerText = currentEmoji;
             document.getElementById('quiz-chinese').innerText = wordData.zh;
 
-            // 英文單字拼裝 (例如 "Lion" -> 首音 "_", 剩餘 "ion")
             const engWord = wordData.en.trim();
             const correctFirstLetter = engWord.charAt(0).toUpperCase();
             const remainder = engWord.slice(1);
@@ -1304,39 +1340,40 @@
             document.getElementById('quiz-letter-blank').className = "text-rose-500 underline underline-offset-4 animate-pulse";
             document.getElementById('quiz-word-remainder').innerText = remainder;
 
-            // 產生隨機 3 個選項 (1 正確 + 2 錯誤)
             const lettersPool = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split('');
             const wrongPool = lettersPool.filter(l => l !== correctFirstLetter);
             shuffleArray(wrongPool);
             
             const options = [correctFirstLetter, wrongPool[0], wrongPool[1]];
-            shuffleArray(options); // 打亂選項順序
+            shuffleArray(options);
 
-            // 將選項渲染上按鈕
             const optButtons = document.querySelectorAll('.quiz-opt-btn');
             options.forEach((opt, idx) => {
                 optButtons[idx].innerText = opt;
-                // 重置按鈕樣式與防點擊狀態
                 optButtons[idx].disabled = false;
                 optButtons[idx].style.opacity = '1';
                 optButtons[idx].className = optButtons[idx].className.replace(/border-[a-z]+-600/g, ''); 
-                // 恢復原主題邊框
                 if (idx === 0) optButtons[idx].classList.add('border-rose-600');
                 if (idx === 1) optButtons[idx].classList.add('border-amber-600');
                 if (idx === 2) optButtons[idx].classList.add('border-cyan-600');
             });
+
+            // 💡 核心：載入考題時，立即啟動間隔一秒的持續朗讀發音
+            startQuizContinuousSpeech(wordData.en);
         }
 
         // 判斷作答
         function checkQuizAnswer(clickedBtn) {
             if (isQuizAnsweringBlocked) return;
 
+            // 💡 核心：玩家點擊作答的瞬間，立刻中斷等待時的持續朗讀
+            stopQuizContinuousSpeech();
+
             const selectedLetter = clickedBtn.innerText;
             const currentEmoji = remainingQuizWords[currentQuizIndex];
             const wordData = TranslationDb[currentEmoji];
             const correctFirstLetter = wordData.en.trim().charAt(0).toUpperCase();
 
-            // 鎖定本題所有選項，防止二次重疊點擊
             isQuizAnsweringBlocked = true;
             document.querySelectorAll('.quiz-opt-btn').forEach(btn => btn.disabled = true);
 
@@ -1344,22 +1381,19 @@
                 // 答對了！
                 AudioSynth.play('match');
                 
-                // 將空白底線置換成正確字母，並移除閃爍動畫
                 document.getElementById('quiz-letter-blank').innerText = correctFirstLetter;
                 document.getElementById('quiz-letter-blank').className = "text-emerald-500 font-extrabold";
                 document.getElementById('quiz-feedback').innerText = "🎉 答對囉！你真厲害！";
                 document.getElementById('quiz-feedback').className = "text-lg font-black text-emerald-600 mt-4 h-6 animate-bounce";
 
-                // 將該單字移出待挑戰題庫
                 remainingQuizWords.splice(currentQuizIndex, 1);
 
-                // 💡 核心優化：答對朗讀該英文單字 3 次 (間隔 2 秒)
+                // 答對朗讀該英文單字 3 次 (間隔 2 秒)
                 speakWordThreeTimes(wordData.en);
 
-                // 顯示下一個單字按鈕 (允許小朋友快速按下一題，或 6 秒後自動進入)
                 document.getElementById('quiz-next-btn').classList.remove('hidden');
 
-                // 6.2 秒後自動進入下一題 (配合 3 次朗讀，間隔 2 秒)
+                // 6.2 秒後自動進入下一題 (配合 3 次朗讀)
                 clearTimeout(wordCardTimer);
                 wordCardTimer = setTimeout(() => {
                     nextQuizQuestion();
@@ -1372,13 +1406,11 @@
                 document.getElementById('quiz-feedback').innerText = `❌ 答錯囉！是 ${correctFirstLetter} 開頭才對唷！`;
                 document.getElementById('quiz-feedback').className = "text-sm md:text-base font-extrabold text-rose-500 mt-4 h-6";
 
-                // 將錯字按鈕反灰
                 clickedBtn.style.opacity = '0.5';
 
-                // 答錯不移出題庫，輪盤指針前進到下一題
                 currentQuizIndex++;
 
-                // 2.5 秒後標準發音 1 次並直接自動進入下一題挑戰
+                // 答錯標準發音 1 次並直接自動進入下一題挑戰
                 speakWord(wordData.en);
                 clearTimeout(wordCardTimer);
                 wordCardTimer = setTimeout(() => {
@@ -1390,6 +1422,7 @@
         // 手動前往下一題
         function nextQuizQuestion() {
             cancelAllPronunciation();
+            stopQuizContinuousSpeech(); // 💡 跳題時徹底中斷上一題的循環語音
             clearTimeout(wordCardTimer);
             loadQuizQuestion();
         }
@@ -1399,8 +1432,6 @@
             if (matchedPairs === totalPairsNeeded) {
                 stopTimer();
                 cancelAllPronunciation();
-                
-                // 💡 核心優化：不再直接彈出勝利對話框，改為轉接「字母回顧考題」
                 setTimeout(() => {
                     startReviewQuiz();
                 }, 1000);
@@ -1410,6 +1441,7 @@
         // 真正的全部考完 -> 彈出勝利 Modal 慶祝！
         function showVictoryModal() {
             cancelAllPronunciation();
+            stopQuizContinuousSpeech(); // 💡 全部通關時，關閉所有的循環語音
             AudioSynth.play('win');
             startConfetti();
 
@@ -1530,7 +1562,7 @@
             requestAnimationFrame(animateConfetti);
         }
 
-        // --- 10. 確保單字卡穩定運作的事件綁定機制 (阻擋冒泡) ---
+        // --- 10. 確保單字卡穩定運作的事件監聽與阻擋冒泡 ---
         document.addEventListener('DOMContentLoaded', () => {
             const modal = document.getElementById('word-card-modal');
             if (modal) {
@@ -1538,19 +1570,16 @@
                 const closeBtn = document.getElementById('word-card-close-btn');
                 const speechBtn = document.getElementById('word-speech-btn');
 
-                // 點擊半透明背景關閉
                 modal.addEventListener('click', () => {
                     hideWordCard();
                 });
 
-                // 點擊字卡主體防止冒泡（不關閉）
                 if (modalContent) {
                     modalContent.addEventListener('click', (e) => {
                         e.stopPropagation();
                     });
                 }
 
-                // 點擊關閉按鈕
                 if (closeBtn) {
                     closeBtn.addEventListener('click', (e) => {
                         e.stopPropagation();
@@ -1558,7 +1587,6 @@
                     });
                 }
 
-                // 點擊發音按鈕
                 if (speechBtn) {
                     speechBtn.addEventListener('click', (e) => {
                         e.stopPropagation();
