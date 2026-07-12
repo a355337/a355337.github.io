@@ -3,6 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- 💡 核心新增：強迫瀏覽器每次都向伺服器檢查新版本，避免快取舊網頁 -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    
     <title>森林動物派對 - 4~6歲幼兒記憶拼讀遊戲</title>
     <!-- 引入 Tailwind CSS 進行精美排版 -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -244,22 +249,22 @@
         <div class="mb-5">
             <label class="block text-gray-700 text-lg font-bold mb-2">🎯 選擇牌子數量：</label>
             <div class="grid grid-cols-3 gap-2">
-                <button type="button" onclick="selectGrid(3)" class="grid-btn py-2 px-1 rounded-xl border-2 border-emerald-400 bg-emerald-50 text-emerald-800 font-bold text-sm text-center">
+                <button type="button" onclick="selectGrid(event, 3)" class="grid-btn py-2 px-1 rounded-xl border-2 border-emerald-400 bg-emerald-50 text-emerald-800 font-bold text-sm text-center">
                     3 x 3 (9張)<br><span class="text-xs text-orange-500">⭐ 最簡單</span>
                 </button>
-                <button type="button" onclick="selectGrid(4)" class="grid-btn py-2 px-1 rounded-xl border-2 border-amber-400 bg-amber-100 text-amber-800 font-bold text-sm text-center scale-105 ring-2 ring-amber-400">
+                <button type="button" onclick="selectGrid(event, 4)" class="grid-btn py-2 px-1 rounded-xl border-2 border-amber-400 bg-amber-100 text-amber-800 font-bold text-sm text-center scale-105 ring-2 ring-amber-400">
                     4 x 4 (16張)<br><span class="text-xs text-amber-600">👍 超推薦</span>
                 </button>
-                <button type="button" onclick="selectGrid(5)" class="grid-btn py-2 px-1 rounded-xl border-2 border-gray-200 bg-white text-gray-700 font-bold text-sm text-center">
+                <button type="button" onclick="selectGrid(event, 5)" class="grid-btn py-2 px-1 rounded-xl border-2 border-gray-200 bg-white text-gray-700 font-bold text-sm text-center">
                     5 x 5 (25張)<br><span class="text-xs text-blue-500">✨ 魔法卡</span>
                 </button>
-                <button type="button" onclick="selectGrid(6)" class="grid-btn py-2 px-1 rounded-xl border-2 border-gray-200 bg-white text-gray-700 font-bold text-sm text-center">
+                <button type="button" onclick="selectGrid(event, 6)" class="grid-btn py-2 px-1 rounded-xl border-2 border-gray-200 bg-white text-gray-700 font-bold text-sm text-center">
                     6 x 6 (36張)<br><span class="text-xs text-gray-500">🔥 小挑戰</span>
                 </button>
-                <button type="button" onclick="selectGrid(8)" class="grid-btn py-2 px-1 rounded-xl border-2 border-gray-200 bg-white text-gray-700 font-bold text-sm text-center">
+                <button type="button" onclick="selectGrid(event, 8)" class="grid-btn py-2 px-1 rounded-xl border-2 border-gray-200 bg-white text-gray-700 font-bold text-sm text-center">
                     8 x 8 (64張)<br><span class="text-xs text-gray-500">🧠 記憶王</span>
                 </button>
-                <button type="button" onclick="selectGrid(10)" class="grid-btn py-2 px-1 rounded-xl border-2 border-gray-200 bg-white text-gray-700 font-bold text-sm text-center">
+                <button type="button" onclick="selectGrid(event, 10)" class="grid-btn py-2 px-1 rounded-xl border-2 border-gray-200 bg-white text-gray-700 font-bold text-sm text-center">
                     10x10 (100張)<br><span class="text-xs text-red-500">👑 終極大師</span>
                 </button>
             </div>
@@ -269,16 +274,16 @@
         <div class="mb-6">
             <label class="block text-gray-700 text-lg font-bold mb-2">🎨 選擇卡片主題：</label>
             <div class="grid grid-cols-4 gap-2">
-                <button type="button" onclick="selectTheme('animals')" class="theme-btn py-2 rounded-xl border-2 border-amber-400 bg-amber-100 text-amber-800 font-bold text-sm text-center scale-105 ring-2 ring-amber-400">
+                <button type="button" onclick="selectTheme(event, 'animals')" class="theme-btn py-2 rounded-xl border-2 border-amber-400 bg-amber-100 text-amber-800 font-bold text-sm text-center scale-105 ring-2 ring-amber-400">
                     🦁<br>動物
                 </button>
-                <button type="button" onclick="selectTheme('fruits')" class="theme-btn py-2 rounded-xl border-2 border-gray-200 bg-white text-gray-700 font-bold text-sm text-center">
+                <button type="button" onclick="selectTheme(event, 'fruits')" class="theme-btn py-2 rounded-xl border-2 border-gray-200 bg-white text-gray-700 font-bold text-sm text-center">
                     🍎<br>水果
                 </button>
-                <button type="button" onclick="selectTheme('vehicles')" class="theme-btn py-2 rounded-xl border-2 border-gray-200 bg-white text-gray-700 font-bold text-sm text-center">
+                <button type="button" onclick="selectTheme(event, 'vehicles')" class="theme-btn py-2 rounded-xl border-2 border-gray-200 bg-white text-gray-700 font-bold text-sm text-center">
                     🚗<br>車車
                 </button>
-                <button type="button" onclick="selectTheme('sweets')" class="theme-btn py-2 rounded-xl border-2 border-gray-200 bg-white text-gray-700 font-bold text-sm text-center">
+                <button type="button" onclick="selectTheme(event, 'sweets')" class="theme-btn py-2 rounded-xl border-2 border-gray-200 bg-white text-gray-700 font-bold text-sm text-center">
                     🍦<br>甜點
                 </button>
             </div>
@@ -288,6 +293,14 @@
         <button onclick="startGame()" class="w-full py-4 bg-gradient-to-r from-orange-500 to-yellow-500 hover:from-orange-600 hover:to-yellow-600 text-white font-extrabold text-2xl rounded-2xl shadow-lg border-b-8 border-orange-700 active:border-b-2 active:translate-y-1 transition-all duration-100">
             🌳 開始派對囉！ 🌳
         </button>
+
+        <!-- 💡 核心新增：強制清除快取並檢查更新按鈕 (專門解決 GitHub Pages 快取問題) -->
+        <div class="mt-5 text-center border-t border-dashed border-amber-200 pt-4">
+            <button type="button" onclick="forceReload()" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 active:scale-95 text-gray-500 hover:text-gray-700 text-xs font-bold rounded-full border border-gray-300 transition-all shadow-sm flex items-center justify-center gap-1.5 mx-auto">
+                🔄 檢查最新版本 (強制排除快取)
+            </button>
+            <p class="text-[9px] text-gray-400 mt-1">如果你剛更新了程式，點選此按鈕可直接下載最新版網頁</p>
+        </div>
     </div>
 
     <!-- 遊戲主畫面 -->
@@ -398,10 +411,10 @@
     </div>
 
     <!-- 中英文幼兒學習字卡 Modal (首字顯示、3次朗讀、6秒倒數進度條) -->
-    <div id="word-card-modal" onclick="hideWordCard()" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
-        <div class="bg-gradient-to-br from-amber-50 to-orange-100 rounded-3xl p-5 max-w-sm w-full text-center border-8 border-amber-300 shadow-2xl relative transform animate-pop-in cursor-pointer" onclick="event.stopPropagation()">
+    <div id="word-card-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-gradient-to-br from-amber-50 to-orange-100 rounded-3xl p-5 max-w-sm w-full text-center border-8 border-amber-300 shadow-2xl relative transform animate-pop-in cursor-pointer">
             <!-- 關閉按鈕 -->
-            <button onclick="hideWordCard()" class="absolute top-3 right-3 text-2xl font-bold text-amber-600 hover:text-amber-800 bg-white/80 rounded-full w-8 h-8 flex items-center justify-center">×</button>
+            <button id="word-card-close-btn" class="absolute top-3 right-3 text-2xl font-bold text-amber-600 hover:text-amber-800 bg-white/80 rounded-full w-8 h-8 flex items-center justify-center">×</button>
             
             <!-- 💡 核心新增：單字第一個英文字母大寫（黃金泡泡） -->
             <div id="word-first-letter" class="mx-auto w-16 h-16 rounded-full bg-gradient-to-tr from-yellow-400 to-amber-500 border-4 border-white text-white flex items-center justify-center text-4xl font-extrabold shadow-lg mb-1 animate-bounce-gentle select-none">
@@ -415,7 +428,7 @@
             <div class="flex items-center justify-center gap-2 mt-1">
                 <span id="word-english" class="text-4xl font-extrabold text-blue-600 tracking-wide">Lion</span>
                 <!-- 喇叭朗讀按鈕 (點擊重播 1 次) -->
-                <button onclick="replaySingleSpeech(event)" class="bg-blue-500 hover:bg-blue-600 active:scale-95 text-white rounded-full p-2.5 shadow-md flex items-center justify-center transition-all">
+                <button id="word-speech-btn" class="bg-blue-500 hover:bg-blue-600 active:scale-95 text-white rounded-full p-2.5 shadow-md flex items-center justify-center transition-all">
                     <span class="text-lg">🔊</span>
                 </button>
             </div>
@@ -491,7 +504,7 @@
 
     <!-- 底部版權 -->
     <footer id="game-footer" class="text-center text-[10px] md:text-xs text-emerald-800/60 font-semibold py-1 flex-shrink-0">
-        🌳 森林動物記憶派對 v1.5 - 首音拼讀學習大進化 🌳
+        🌳 森林動物記憶派對 v1.6 - 終結快取最佳化版 🌳
     </footer>
 
     <script>
@@ -503,7 +516,7 @@
             sweets: ['🍦', '🍧', '🍨', '🍩', '🍪', '🎂', '🍰', '🧁', '🥧', '🍫', '🍬', '🍭', '🍮', '🍯', '🍿', '🥞', '🧇', '🍡', '🍵', '🧉', '🥤', '🧃', '🥛', '🍼']
         };
 
-        // --- 1.1 中英對照翻譯字典資料庫 (包含所有使用的 Emoji，確保首字母正常解析) ---
+        // --- 1.1 中英對照翻譯字典資料庫 ---
         const TranslationDb = {
             // Animals (動物)
             '🦁': { en: 'Lion', zh: '獅子' },
@@ -682,13 +695,13 @@
         // 奇數牌組輔助狀態
         let hasMagicCard = false;   // 是否包含魔法彩虹卡
 
-        // 💡 學習字卡 & 語音排程控制
+        // 學習字卡 & 語音排程控制
         let isWordCardActive = false;
         let wordCardTimer = null;
         let speechTimeoutIds = [];  // 用來清空三次朗讀的排程
         let currentActiveEnglishWord = '';
 
-        // 💡 新增：考題回顧模式核心變數
+        // 考題回顧模式核心變數
         let remainingQuizWords = []; // 目前尚未答對的單字題庫列表
         let currentQuizIndex = 0;   // 當前挑戰的單字索引
         let isQuizAnsweringBlocked = false; // 答對發音期間鎖定選項
@@ -704,6 +717,17 @@
         let player1Score = 0;
         let player2Score = 0;
 
+        // 💡 核心新增：強制重新讀取、避開快取的方法
+        function forceReload() {
+            // 使用內建音效輔助提示點擊
+            AudioSynth.play('flip');
+            // 清理掉所有目前的語音播放，防止當機
+            cancelAllPronunciation();
+            // 在網址後面附加毫秒級 timestamp 時間戳記，迫使伺服器（特別是 GitHub Pages）提供全新資料而非 Cache 舊版
+            const cleanUrl = window.location.origin + window.location.pathname;
+            window.location.href = cleanUrl + '?nocache=' + Date.now();
+        }
+
         // --- 3. 畫面切換與設定選擇 ---
         function selectMode(mode) {
             currentMode = mode;
@@ -717,25 +741,31 @@
             AudioSynth.play('flip');
         }
 
-        function selectGrid(size) {
+        function selectGrid(event, size) {
             currentGridSize = size;
             document.querySelectorAll('.grid-btn').forEach(btn => {
                 btn.classList.remove('bg-amber-100', 'border-amber-400', 'text-amber-800', 'scale-105', 'ring-2', 'ring-amber-400');
                 btn.classList.add('bg-white', 'border-gray-200', 'text-gray-700');
             });
-            event.currentTarget.classList.remove('bg-white', 'border-gray-200', 'text-gray-700');
-            event.currentTarget.classList.add('bg-amber-100', 'border-amber-400', 'text-amber-800', 'scale-105', 'ring-2', 'ring-amber-400');
+            const target = event ? event.currentTarget : null;
+            if (target) {
+                target.classList.remove('bg-white', 'border-gray-200', 'text-gray-700');
+                target.classList.add('bg-amber-100', 'border-amber-400', 'text-amber-800', 'scale-105', 'ring-2', 'ring-amber-400');
+            }
             AudioSynth.play('flip');
         }
 
-        function selectTheme(theme) {
+        function selectTheme(event, theme) {
             currentTheme = theme;
             document.querySelectorAll('.theme-btn').forEach(btn => {
                 btn.classList.remove('bg-amber-100', 'border-amber-400', 'text-amber-800', 'scale-105', 'ring-2', 'ring-amber-400');
                 btn.classList.add('bg-white', 'border-gray-200', 'text-gray-700');
             });
-            event.currentTarget.classList.remove('bg-white', 'border-gray-200', 'text-gray-700');
-            event.currentTarget.classList.add('bg-amber-100', 'border-amber-400', 'text-amber-800', 'scale-105', 'ring-2', 'ring-amber-400');
+            const target = event ? event.currentTarget : null;
+            if (target) {
+                target.classList.remove('bg-white', 'border-gray-200', 'text-gray-700');
+                target.classList.add('bg-amber-100', 'border-amber-400', 'text-amber-800', 'scale-105', 'ring-2', 'ring-amber-400');
+            }
             AudioSynth.play('flip');
         }
 
@@ -981,7 +1011,7 @@
             }
         }
 
-        // 💡 核心新增：念三次且每次間隔兩秒
+        // 💡 核心優化：念三次且每次間隔兩秒
         function speakWordThreeTimes(englishText) {
             cancelAllPronunciation(); // 先清空前一次的所有朗讀
             
@@ -1025,7 +1055,7 @@
             const wordData = TranslationDb[emoji] || { en: 'Magic Card', zh: '彩虹魔法卡' };
             currentActiveEnglishWord = wordData.en;
 
-            // 💡 核心新增：提取首字母大寫並填入頂部黃金泡泡
+            // 💡 核心優化：提取首字母大寫並填入頂部黃金泡泡
             const firstLetter = wordData.en.trim().charAt(0).toUpperCase();
             document.getElementById('word-first-letter').innerText = firstLetter;
 
@@ -1213,7 +1243,7 @@
             return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
         }
 
-        // --- 8. 💡 核心新增：首音回顧考題邏輯 ---
+        // --- 8. 💡 核心優化：首音回顧考題邏輯 ---
         function startReviewQuiz() {
             // 收集這局配對成功的非魔法Emoji（保證題庫唯一性與中英庫一致性）
             const matchedSet = new Set();
@@ -1323,7 +1353,7 @@
                 // 將該單字移出待挑戰題庫
                 remainingQuizWords.splice(currentQuizIndex, 1);
 
-                // 💡 核心新增：答對朗讀該英文單字 3 次 (間隔 2 秒)
+                // 💡 核心優化：答對朗讀該英文單字 3 次 (間隔 2 秒)
                 speakWordThreeTimes(wordData.en);
 
                 // 顯示下一個單字按鈕 (允許小朋友快速按下一題，或 6 秒後自動進入)
@@ -1370,7 +1400,7 @@
                 stopTimer();
                 cancelAllPronunciation();
                 
-                // 💡 核心變更：不再直接彈出勝利對話框，改為轉接「字母回顧考題」
+                // 💡 核心優化：不再直接彈出勝利對話框，改為轉接「字母回顧考題」
                 setTimeout(() => {
                     startReviewQuiz();
                 }, 1000);
@@ -1499,6 +1529,46 @@
             }
             requestAnimationFrame(animateConfetti);
         }
+
+        // --- 10. 確保單字卡穩定運作的事件綁定機制 (阻擋冒泡) ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const modal = document.getElementById('word-card-modal');
+            if (modal) {
+                const modalContent = modal.querySelector('div');
+                const closeBtn = document.getElementById('word-card-close-btn');
+                const speechBtn = document.getElementById('word-speech-btn');
+
+                // 點擊半透明背景關閉
+                modal.addEventListener('click', () => {
+                    hideWordCard();
+                });
+
+                // 點擊字卡主體防止冒泡（不關閉）
+                if (modalContent) {
+                    modalContent.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                    });
+                }
+
+                // 點擊關閉按鈕
+                if (closeBtn) {
+                    closeBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        hideWordCard();
+                    });
+                }
+
+                // 點擊發音按鈕
+                if (speechBtn) {
+                    speechBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        if (currentActiveEnglishWord) {
+                            speakWord(currentActiveEnglishWord);
+                        }
+                    });
+                }
+            }
+        });
     </script>
 </body>
 </html>
