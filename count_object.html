@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>魔法數字樂園 - 幼兒數字遊戲 (超級混和挑戰版)</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Noto+Sans+TC:wght@500;700;900&display=swap');
+        
+        body {
+            font-family: 'Noto Sans TC', 'Fredoka One', sans-serif;
+            background: linear-gradient(135deg, #FFF9E6 0%, #E8F5E9 100%);
+            touch-action: manipulation;
+        }
+
+        /* 可愛漂浮動畫 */
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-15px) rotate(3deg); }
+        }
+
+        .float-item {
+            animation: float 4s ease-in-out infinite;
+        }
+
+        /* 氣球飄起動畫 */
+        @keyframes balloonUp {
+            0% { transform: translateY(100vh) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(-120vh) rotate(15deg); opacity: 1; }
+        }
+
+        .balloon {
+            position: absolute;
+            animation: balloonUp 6.5s linear infinite;
+            cursor: pointer;
+        }
+
+        /* 快樂彈跳 */
+        @keyframes bounce-custom {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.15); }
+        }
+        .bounce-active {
+            animation: bounce-custom 0.5s ease-in-out;
+        }
+
+        /* 卡片左右搖晃 (答錯時) */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+        .shake-active {
+            animation: shake 0.4s ease-in-out;
+        }
+
+        /* 紙花特效畫布 */
+        #confetti-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 50;
+        }
+    </style>
+</head>
+<body class="overflow-hidden min-h-screen flex flex-col justify-between select-none">
+
+    <!-- 背景紙花畫布 -->
+    <canvas id="confetti-canvas"></canvas>
+
+    <!-- 頂部狀態列 -->
+    <header class="p-4 flex justify-between items-center bg-white/70 backdrop-blur-md shadow-sm z-10">
+        <div class="flex items-center gap-3">
+            <span class="text-4xl">👑</span>
+            <h1 class="text-2xl md:text-3xl font-extrabold text-amber-500 tracking-wider">魔法數字樂園</h1>
+        </div>
+        <!-- 星星獎勵 -->
+        <div class="flex items-center bg-amber-100 px-4 py-2 rounded-full border-2 border-amber-300">
+            <span class="text-2xl mr-2">⭐</span>
+            <span id="star-count" class="text-2xl font-bold text-amber-600">0</span>
+        </div>
+    </header>
+
+    <!-- 遊戲主畫面 -->
+    <main class="flex-grow flex flex-col items-center justify-center p-4 relative w-full">
+        
+        <!-- 大門選單 (首頁) -->
+        <div id="home-screen" class="flex flex-col items-center max-w-md w-full gap-5 text-center z-10 overflow-y-auto max-h-[80vh] py-4">
+            <div class="float-item text-7xl mb-2">🦁🐰🐯🍇</div>
+            <h2 class="text-3xl md:text-4xl font-black text-emerald-600 mb-1">終極數字大挑戰！</h2>
+            <p class="text-lg text-gray-600 mb-2 font-bold">難度全面升級，快來挑戰拿高分：</p>
+            
+            <button onclick="startGame('count')" class="w-full bg-gradient-to-r from-pink-400 to-rose-400 hover:from-pink-500 hover:to-rose-500 text-white text-2xl font-bold py-5 px-8 rounded-3xl shadow-lg border-b-8 border-rose-600 transform transition active:scale-95 flex items-center justify-center gap-4">
+                <span class="text-4xl">🍓</span>
+                <span class="text-left">
+                    <span class="block text-xl font-black">1. 水果大混和 (難🔥)</span>
+                    <span class="block text-xs opacity-90 font-normal">多種水果混和，考驗你的專注力與加法！</span>
+                </span>
+            </button>
+            
+            <button onclick="startGame('balloon')" class="w-full bg-gradient-to-r from-sky-400 to-blue-400 hover:from-sky-500 hover:to-blue-500 text-white text-2xl font-bold py-5 px-8 rounded-3xl shadow-lg border-b-8 border-blue-600 transform transition active:scale-95 flex items-center justify-center gap-4">
+                <span class="text-4xl">🎈</span>
+                <span class="text-left">
+                    <span class="block text-xl font-black">2. 數字氣球碰！</span>
+                    <span class="block text-xs opacity-90 font-normal">氣球飛更快，挑戰 1 ~ 10 快速反應！</span>
+                </span>
+            </button>
+
+            <button onclick="startGame('compare')" class="w-full bg-gradient-to-r from-amber-400 to-orange-400 hover:from-amber-500 hover:to-orange-500 text-white text-2xl font-bold py-5 px-8 rounded-3xl shadow-lg border-b-8 border-orange-600 transform transition active:scale-95 flex items-center justify-center gap-4">
+                <span class="text-4xl">⚖️</span>
+                <span class="text-left">
+                    <span class="block text-xl font-black">3. 糖果誰最多？</span>
+                    <span class="block text-xs opacity-90 font-normal">比一比，哪一邊的東西比較多！</span>
+                </span>
+            </button>
+        </div>
+
+        <!-- 遊戲 1: 水果大混和 -->
+        <div id="count-game" class="hidden w-full max-w-4xl flex flex-col items-center gap-6 z-10">
+            <div class="text-center w-full px-4">
+                <div class="inline-block bg-white/90 px-6 py-3 rounded-2xl shadow-md border-2 border-pink-200 mb-2">
+                    <h3 class="text-xl md:text-2xl font-black text-rose-500 flex items-center justify-center gap-2">
+                        <span class="text-2xl">🔊</span> 
+                        <span id="count-instruction">載入中...</span>
+                    </h3>
+                </div>
+                <div class="flex justify-center gap-4 text-xs font-bold text-gray-500">
+                    <span>💡 點擊「對的水果」會幫你數數</span>
+                    <span class="text-orange-500">⏱️ 答對越快，星星加乘越多！</span>
+                </div>
+            </div>
+
+            <!-- 水果擺放區 -->
+            <div id="candy-container" class="bg-white/80 p-6 md:p-8 rounded-3xl border-4 border-dashed border-rose-300 min-h-[220px] md:min-h-[280px] w-full flex flex-wrap justify-center items-center gap-4 shadow-inner">
+                <!-- 動態加入混和水果 -->
+            </div>
+
+            <!-- 答案按鈕區 -->
+            <div id="count-options" class="grid grid-cols-4 gap-3 w-full max-w-lg">
+                <!-- 動態加入超大數字按鈕 -->
+            </div>
+        </div>
+
+        <!-- 遊戲 2: 數字氣球碰 -->
+        <div id="balloon-game" class="hidden w-full h-full flex flex-col items-center justify-between absolute inset-0 z-10 p-6 overflow-hidden">
+            <div class="text-center bg-white/90 p-4 rounded-2xl shadow-md border-2 border-sky-300 max-w-md w-full">
+                <h3 class="text-2xl md:text-3xl font-black text-sky-600 flex items-center justify-center gap-2">
+                    <span class="text-3xl">🔊</span>
+                    <span>請找出數字：<span id="target-number-display" class="text-5xl font-extrabold text-rose-500 underline ml-1">3</span></span>
+                </h3>
+            </div>
+
+            <!-- 氣球活動區 -->
+            <div id="balloon-area" class="flex-grow w-full relative overflow-hidden">
+                <!-- 氣球會從底下飄上來 -->
+            </div>
+        </div>
+
+        <!-- 遊戲 3: 糖果誰最多？ -->
+        <div id="compare-game" class="hidden w-full max-w-4xl flex flex-col items-center gap-6 z-10">
+            <div class="text-center">
+                <h3 class="text-2xl md:text-3xl font-black text-amber-500 flex items-center justify-center gap-2">
+                    <span class="text-3xl">🔊</span> 
+                    <span>哪一邊的點心比較多呢？</span>
+                </h3>
+                <p class="text-sm text-gray-500 mt-1 font-bold">點選數量比較多的那一邊！</p>
+            </div>
+
+            <!-- 左右對比區域 -->
+            <div class="grid grid-cols-2 gap-6 w-full max-w-2xl px-2">
+                <!-- 左邊卡片 -->
+                <button id="compare-left" onclick="checkCompareAnswer('left')" class="bg-white/90 p-4 md:p-6 rounded-3xl border-4 border-sky-300 hover:border-sky-400 shadow-lg active:scale-95 transition flex flex-col items-center justify-between min-h-[260px] cursor-pointer">
+                    <div id="compare-left-items" class="flex flex-wrap justify-center items-center gap-2 w-full flex-grow min-h-[140px] p-2 bg-sky-50/50 rounded-2xl"></div>
+                    <div class="text-xl font-black text-sky-600 mt-3">左邊</div>
+                </button>
+
+                <!-- 右邊卡片 -->
+                <button id="compare-right" onclick="checkCompareAnswer('right')" class="bg-white/90 p-4 md:p-6 rounded-3xl border-4 border-pink-300 hover:border-pink-400 shadow-lg active:scale-95 transition flex flex-col items-center justify-between min-h-[260px] cursor-pointer">
+                    <div id="compare-right-items" class="flex flex-wrap justify-center items-center gap-2 w-full flex-grow min-h-[140px] p-2 bg-pink-50/50 rounded-2xl"></div>
+                    <div class="text-xl font-black text-pink-600 mt-3">右邊</div>
+                </button>
+            </div>
+        </div>
+
+        <!-- 成功/讚美與星星計分結算視窗 -->
+        <div id="success-modal" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50">
+            <div class="bg-white p-6 md:p-8 rounded-3xl border-8 border-amber-300 text-center max-w-md w-full shadow-2xl transform transition scale-95 relative overflow-hidden">
+                <!-- 可愛彩帶背景裝飾 -->
+                <div class="absolute -top-10 -left-10 text-4xl opacity-20">🌸🎉🍰</div>
+                <div class="absolute -bottom-10 -right-10 text-4xl opacity-20">🎁🌟🌈</div>
+
+                <div class="text-6xl mb-2 animate-bounce">👑💖🎉</div>
+                <h4 class="text-3xl font-black text-emerald-500 mb-1">你好棒！！</h4>
+                <p class="text-lg text-gray-600 font-bold mb-3">挑戰成功囉！</p>
+                
+                <!-- 精緻的成績結算卡片 -->
+                <div class="bg-gradient-to-r from-amber-50 to-orange-50 p-4 rounded-2xl border-2 border-amber-200 mb-4 text-left">
+                    <h5 class="text-center font-black text-amber-800 text-md border-b border-amber-200 pb-2 mb-2">✨ 本關卡挑戰報告 ✨</h5>
+                    <div class="space-y-2 text-sm md:text-base font-bold text-gray-700">
+                        <div class="flex justify-between">
+                            <span>⏱️ 答對時間：</span>
+                            <span id="stat-time" class="text-rose-500 font-black">2.5 秒</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>⭐ 題目基本星數：</span>
+                            <span id="stat-base" class="text-blue-500">2 顆 (雙重目標挑戰)</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span>⚡ 速度加成倍率：</span>
+                            <span id="stat-multiplier" class="bg-orange-400 text-white text-xs px-2 py-0.5 rounded-full font-black animate-pulse">2x (超神速!)</span>
+                        </div>
+                        <div class="flex justify-between border-t border-dashed border-amber-200 pt-2 text-lg font-black text-amber-600">
+                            <span>🎁 本次獲得：</span>
+                            <span id="stat-earned" class="text-2xl text-orange-500">+4 顆星星！</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 突出顯示總星星數 -->
+                <div class="mb-4 text-center">
+                    <p class="text-xs text-amber-700 font-bold uppercase tracking-wider mb-1">🎒 目前累積總星星</p>
+                    <div class="flex items-center justify-center gap-2">
+                        <span class="text-3xl animate-pulse">⭐</span>
+                        <span id="modal-star-count" class="text-4xl font-black text-amber-500">0</span>
+                        <span class="text-lg font-bold text-gray-500">顆</span>
+                    </div>
+                    <!-- 星星進度條小圖示 -->
+                    <div id="stars-row" class="flex justify-center gap-1 mt-2 text-lg h-7 overflow-hidden"></div>
+                </div>
+
+                <button onclick="nextLevel()" class="w-full bg-gradient-to-r from-amber-400 to-orange-400 hover:from-amber-50 hover:to-orange-500 text-white font-extrabold text-xl py-3.5 rounded-2xl border-b-4 border-orange-600 active:scale-95 transition">
+                    下一題 ➔
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- 底部控制列 -->
+    <footer class="p-4 flex justify-between items-center bg-white/70 backdrop-blur-md shadow-inner z-10">
+        <button id="back-home" onclick="goHome()" class="hidden bg-gray-400 hover:bg-gray-500 text-white font-bold py-2 px-6 rounded-full text-lg shadow active:scale-95 transition">
+            🏠 回首頁
+        </button>
+        <div class="flex gap-2">
+            <button onclick="toggleVoice()" id="voice-btn" class="bg-amber-400 hover:bg-amber-500 text-white font-bold p-3 rounded-full shadow active:scale-95 transition flex items-center justify-center text-xl">
+                🔊 語音開啟
+            </button>
+        </div>
+    </footer>
+
+    <script>
+        // --- 全局狀態與音效設定 ---
+        let currentGameMode = ''; // 'count', 'balloon', 'compare'
+        let starCount = 0;
+        let isVoiceEnabled = true;
+        let levelStartTime = 0; // 用於計時
+        
+        // 語音引擎
+        const synth = window.speechSynthesis;
+        let speechVoice = null;
+
+        function initVoice() {
+            if (!synth) return;
+            const voices = synth.getVoices();
+            speechVoice = voices.find(v => v.lang.includes('zh-TW')) || 
+                          voices.find(v => v.lang.includes('zh-HK')) || 
+                          voices.find(v => v.lang.includes('zh'));
+        }
+        if (synth) {
+            if (synth.onvoiceschanged !== undefined) {
+                synth.onvoiceschanged = initVoice;
+            }
+            initVoice();
+        }
+
+        function speakText(text) {
+            if (!isVoiceEnabled || !synth) return;
+            synth.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            if (speechVoice) utterance.voice = speechVoice;
+            utterance.rate = 0.92; // 稍微慢一點更清晰
+            utterance.pitch = 1.25; // 親切感
+            synth.speak(utterance);
+        }
+
+        function toggleVoice() {
+            isVoiceEnabled = !isVoiceEnabled;
+            const btn = document.getElementById('voice-btn');
+            if (isVoiceEnabled) {
+                btn.innerHTML = '🔊 語音開啟';
+                btn.className = 'bg-amber-400 hover:bg-amber-500 text-white font-bold p-3 rounded-full shadow active:scale-95 transition flex items-center justify-center text-xl';
+                speakText("語音功能打開囉！");
+            } else {
+                btn.innerHTML = '🔇 語音關閉';
+                btn.className = 'bg-gray-400 hover:bg-gray-500 text-white font-bold p-3 rounded-full shadow active:scale-95 transition flex items-center justify-center text-xl';
+                synth.cancel();
+            }
+        }
+
+        // Web Audio API
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        let audioCtx = null;
+
+        function playSound(type) {
+            try {
+                if (!audioCtx) audioCtx = new AudioContext();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                const now = audioCtx.currentTime;
+
+                if (type === 'pop') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(850, now);
+                    osc.frequency.exponentialRampToValueAtTime(120, now + 0.12);
+                    gain.gain.setValueAtTime(0.3, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
+                    osc.start(now);
+                    osc.stop(now + 0.12);
+                } else if (type === 'correct') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(523.25, now); // C5
+                    osc.frequency.setValueAtTime(659.25, now + 0.08); // E5
+                    osc.frequency.setValueAtTime(783.99, now + 0.16); // G5
+                    osc.frequency.setValueAtTime(1046.50, now + 0.24); // C6
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.45);
+                    osc.start(now);
+                    osc.stop(now + 0.45);
+                } else if (type === 'wrong') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(170, now);
+                    osc.frequency.linearRampToValueAtTime(110, now + 0.25);
+                    gain.gain.setValueAtTime(0.15, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+                    osc.start(now);
+                    osc.stop(now + 0.25);
+                } else if (type === 'click') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(580, now);
+                    gain.gain.setValueAtTime(0.1, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.07);
+                    osc.start(now);
+                    osc.stop(now + 0.07);
+                } else if (type === 'magic') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(400, now);
+                    osc.frequency.exponentialRampToValueAtTime(1000, now + 0.2);
+                    gain.gain.setValueAtTime(0.15, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+                    osc.start(now);
+                    osc.stop(now + 0.2);
+                }
+            } catch (e) {
+                console.log("Audio contexts error");
+            }
+        }
+
+        // --- 紙花特效 ---
+        const canvas = document.getElementById('confetti-canvas');
+        const ctx = canvas.getContext('2d');
+        let confetti = [];
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        function createConfetti() {
+            confetti = [];
+            const colors = ['#FFC107', '#FF5722', '#E91E63', '#4CAF50', '#00BCD4', '#9C27B0'];
+            for (let i = 0; i < 60; i++) {
+                confetti.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height - canvas.height,
+                    size: Math.random() * 12 + 8,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    speedX: Math.random() * 4 - 2,
+                    speedY: Math.random() * 5 + 5,
+                    rotation: Math.random() * 360,
+                    rotationSpeed: Math.random() * 10 - 5
+                });
+            }
+        }
+
+        let confettiActive = false;
+        function updateConfetti() {
+            if (!confettiActive) return;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            let active = false;
+            confetti.forEach(p => {
+                p.y += p.speedY;
+                p.x += p.speedX;
+                p.rotation += p.rotationSpeed;
+                if (p.y < canvas.height) {
+                    active = true;
+                    ctx.save();
+                    ctx.translate(p.x, p.y);
+                    ctx.rotate(p.rotation * Math.PI / 180);
+                    ctx.fillStyle = p.color;
+                    ctx.fillRect(-p.size/2, -p.size/2, p.size, p.size);
+                    ctx.restore();
+                }
+            });
+            if (active) {
+                requestAnimationFrame(updateConfetti);
+            } else {
+                confettiActive = false;
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+            }
+        }
+
+        function triggerConfetti() {
+            confettiActive = true;
+            createConfetti();
+            updateConfetti();
+        }
+
+        // --- 導航控制 ---
+        function goHome() {
+            playSound('click');
+            document.getElementById('home-screen').classList.remove('hidden');
+            document.getElementById('count-game').classList.add('hidden');
+            document.getElementById('balloon-game').classList.add('hidden');
+            document.getElementById('compare-game').classList.add('hidden');
+            document.getElementById('back-home').classList.add('hidden');
+            document.getElementById('success-modal').classList.add('hidden');
+            clearInterval(balloonTimer);
+            currentGameMode = '';
+        }
+
+        function startGame(mode) {
+            playSound('click');
+            currentGameMode = mode;
+            document.getElementById('home-screen').classList.add('hidden');
+            document.getElementById('back-home').classList.remove('hidden');
+
+            if (mode === 'count') {
+                document.getElementById('count-game').classList.remove('hidden');
+                initCountLevel();
+            } else if (mode === 'balloon') {
+                document.getElementById('balloon-game').classList.remove('hidden');
+                initBalloonLevel();
+            } else if (mode === 'compare') {
+                document.getElementById('compare-game').classList.remove('hidden');
+                initCompareLevel();
+            }
+        }
+
+        // 成功畫面：展示大星星、計算答題時間、倍數與累積數
+        function showSuccess(baseStars, isDouble) {
+            playSound('correct');
+            triggerConfetti();
+
+            // 計算答題秒數
+            const timeSpentSec = ((Date.now() - levelStartTime) / 1000);
+            
+            // 計算加乘倍率
+            let multiplier = 1.0;
+            let speedText = "正常速度";
+            let speedColor = "text-gray-500";
+            
+            if (timeSpentSec <= 5.0) {
+                multiplier = 2.0;
+                speedText = "2x (超神速閃電！)";
+                speedColor = "bg-red-500 text-white animate-bounce";
+            } else if (timeSpentSec <= 10.0) {
+                multiplier = 1.5;
+                speedText = "1.5x (好快速！)";
+                speedColor = "bg-orange-400 text-white animate-pulse";
+            }
+
+            const earnedStars = Math.round(baseStars * multiplier);
+            starCount += earnedStars;
+            
+            // 更新畫面的星星數據
+            document.getElementById('star-count').innerText = starCount;
+            document.getElementById('modal-star-count').innerText = starCount;
+
+            // 更新成績結算表單的 DOM
+            document.getElementById('stat-time').innerText = `${timeSpentSec.toFixed(1)} 秒`;
+            document.getElementById('stat-base').innerText = `${baseStars} 顆星 (${isDouble ? '高難度雙重目標' : '單一目標'})`;
+            
+            const multSpan = document.getElementById('stat-multiplier');
+            multSpan.innerText = speedText;
+            multSpan.className = `text-xs px-2 py-0.5 rounded-full font-black ${speedColor}`;
+            
+            document.getElementById('stat-earned').innerText = `+ ${earnedStars} 顆星星！`;
+
+            // 動態展示一排星星 (最多繪製 8 顆，多的顯示＋)
+            const starsRow = document.getElementById('stars-row');
+            starsRow.innerHTML = '';
+            const starDrawCount = Math.min(starCount, 8);
+            for(let i=0; i<starDrawCount; i++) {
+                const s = document.createElement('span');
+                s.innerText = '⭐';
+                s.className = 'animate-bounce';
+                s.style.animationDelay = `${i * 0.1}s`;
+                starsRow.appendChild(s);
+            }
+            if (starCount > 8) {
+                const sPlus = document.createElement('span');
+                sPlus.innerText = '➕';
+                sPlus.className = 'text-amber-500 font-black text-sm flex items-center';
+                starsRow.appendChild(sPlus);
+            }
+            
+            // 彈出視窗
+            const modal = document.getElementById('success-modal');
+            modal.classList.remove('hidden');
+            
+            // 讚美語音包含時間肯定
+            let praiseMsg = "";
+            if (multiplier > 1.0) {
+                praiseMsg = `太快了吧！你花 ${timeSpentSec.toFixed(0)} 秒就答對了！送你 ${earnedStars} 顆星星！`;
+            } else {
+                praiseMsg = `好棒喔！你答對了！恭喜得到 ${earnedStars} 顆星星！`;
+            }
+            speakText(praiseMsg);
+        }
+
+        function nextLevel() {
+            playSound('click');
+            document.getElementById('success-modal').classList.add('hidden');
+            if (currentGameMode === 'count') {
+                initCountLevel();
+            } else if (currentGameMode === 'balloon') {
+                initBalloonLevel();
+            } else if (currentGameMode === 'compare') {
+                initCompareLevel();
+            }
+        }
+
+        // --- 遊戲 1: 水果大混和 (混和 2~3 種，問 1~2 種目標) ---
+        const ALL_FRUITS = {
+            '🍓': '草莓',
+            '🍎': '蘋果',
+            '🍉': '西瓜',
+            '🍌': '香蕉',
+            '🍇': '葡萄',
+            '🍒': '櫻桃'
+        };
+        
+        let currentLevelCorrectCount = 0;
+        let countGameTappedTarget = 0; // 小朋友目前點擊對的水果數量
+        let targetFruitEmojis = []; // 當前需要尋找的水果列表
+
+        function initCountLevel() {
+            const container = document.getElementById('candy-container');
+            const optionsDiv = document.getElementById('count-options');
+            container.innerHTML = '';
+            optionsDiv.innerHTML = '';
+            countGameTappedTarget = 0;
+
+            // 隨機選擇 2 到 3 種水果
+            const fruitKeys = Object.keys(ALL_FRUITS).sort(() => Math.random() - 0.5);
+            const numTypes = Math.random() < 0.5 ? 2 : 3; // 50% 機率 2 種，50% 機率 3 種混和
+            const activeFruits = fruitKeys.slice(0, numTypes);
+
+            // 為選中的每種水果生成隨機數量 (1 ~ 4 顆，避免總數過多擺不下)
+            let mixPool = [];
+            let fruitCounts = {};
+
+            activeFruits.forEach(emoji => {
+                const count = Math.floor(Math.random() * 4) + 1;
+                fruitCounts[emoji] = count;
+                for (let i = 0; i < count; i++) {
+                    mixPool.push(emoji);
+                }
+            });
+
+            // 徹底打亂混和水果的擺放順序
+            mixPool.sort(() => Math.random() - 0.5);
+
+            // 決定「問 1 種」還是「問 2 種」
+            // 雙目標難度極高，有高加分
+            const isDoubleTarget = Math.random() < 0.55; // 55% 機率是雙目標
+            let questionSpeech = "";
+            let questionHTML = "";
+
+            if (isDoubleTarget && activeFruits.length >= 2) {
+                // 雙目標
+                targetFruitEmojis = [activeFruits[0], activeFruits[1]];
+                currentLevelCorrectCount = fruitCounts[activeFruits[0]] + fruitCounts[activeFruits[1]];
+                
+                questionSpeech = `請數數看，畫面上一共有幾個 ${ALL_FRUITS[activeFruits[0]]} 和 ${ALL_FRUITS[activeFruits[1]]} 呢？`;
+                questionHTML = `請數數看，一共有幾個 <span class="text-3xl">${activeFruits[0]}</span> 和 <span class="text-3xl">${activeFruits[1]}</span> 呢？`;
+            } else {
+                // 單目標
+                targetFruitEmojis = [activeFruits[0]];
+                currentLevelCorrectCount = fruitCounts[activeFruits[0]];
+                
+                questionSpeech = `請數數看，畫面上有幾個 ${ALL_FRUITS[activeFruits[0]]} 呢？`;
+                questionHTML = `請數數看，有幾個 <span class="text-3xl">${activeFruits[0]}</span> 呢？`;
+            }
+
+            // 更新問題文字顯示
+            document.getElementById('count-instruction').innerHTML = questionHTML;
+
+            setTimeout(() => {
+                speakText(questionSpeech);
+            }, 300);
+
+            // 渲染水果
+            const sizeClass = mixPool.length > 7 ? "text-5xl md:text-6xl p-1.5" : "text-6xl md:text-7xl p-3";
+            
+            mixPool.forEach((emoji, index) => {
+                const fruitBtn = document.createElement('button');
+                fruitBtn.className = `${sizeClass} focus:outline-none transform transition active:scale-125 duration-150 hover:rotate-12 cursor-pointer filter drop-shadow-md`;
+                fruitBtn.innerHTML = emoji;
+                fruitBtn.dataset.tapped = "false";
+                
+                fruitBtn.onclick = (e) => {
+                    e.preventDefault();
+                    if (fruitBtn.dataset.tapped === "false") {
+                        // 判斷是否為目標水果
+                        const isTarget = targetFruitEmojis.includes(emoji);
+                        
+                        if (isTarget) {
+                            countGameTappedTarget++;
+                            fruitBtn.dataset.tapped = "true";
+                            fruitBtn.classList.add('opacity-30', 'scale-90');
+                            playSound('pop');
+                            
+                            // 發出累計語音
+                            const numWords = ["一", "二", "三", "四", "五", "六", "七", "八", "九", "十", "十一", "十二"];
+                            if (countGameTappedTarget <= numWords.length) {
+                                speakText(numWords[countGameTappedTarget - 1]);
+                            }
+                        } else {
+                            // 小朋友點錯不計入的水果：溫馨發音糾正，但不扣分
+                            playSound('magic');
+                            speakText(`這是${ALL_FRUITS[emoji]}，這個不用數喔！`);
+                            // 微幅抖動提示
+                            fruitBtn.classList.add('animate-bounce');
+                            setTimeout(() => fruitBtn.classList.remove('animate-bounce'), 400);
+                        }
+                    }
+                };
+                container.appendChild(fruitBtn);
+            });
+
+            // 選項產生 (4個按鈕，必須包含正確答案，且選項在 1~12 之間不重複)
+            let choices = [currentLevelCorrectCount];
+            while (choices.length < 4) {
+                let wrong = Math.floor(Math.random() * 10) + 1;
+                if (!choices.includes(wrong) && wrong !== currentLevelCorrectCount) {
+                    choices.push(wrong);
+                }
+            }
+            choices.sort(() => Math.random() - 0.5);
+
+            const colors = [
+                'from-amber-400 to-yellow-400 hover:from-amber-500 hover:to-yellow-500 border-yellow-600 text-yellow-950',
+                'from-emerald-400 to-green-400 hover:from-emerald-500 hover:to-green-500 border-green-600 text-green-950',
+                'from-pink-400 to-purple-400 hover:from-pink-500 hover:to-purple-500 border-purple-600 text-purple-950',
+                'from-sky-400 to-indigo-400 hover:from-sky-500 hover:to-indigo-500 border-indigo-600 text-indigo-950'
+            ];
+
+            choices.forEach((num, index) => {
+                const btn = document.createElement('button');
+                btn.className = `w-full bg-gradient-to-r ${colors[index]} text-4xl md:text-5xl font-black py-4 rounded-3xl border-b-8 shadow-lg transform transition active:scale-95 flex flex-col items-center justify-center`;
+                btn.innerHTML = `${num}`;
+                btn.onclick = () => checkCountAnswer(num, btn, isDoubleTarget);
+                optionsDiv.appendChild(btn);
+            });
+
+            // 記錄開始答題時間
+            levelStartTime = Date.now();
+        }
+
+        function checkCountAnswer(selected, buttonElement, isDoubleTarget) {
+            if (selected === currentLevelCorrectCount) {
+                buttonElement.classList.add('bounce-active');
+                // 答對了！雙目標基礎分 2 星，單目標 1 星
+                showSuccess(isDoubleTarget ? 2 : 1, isDoubleTarget);
+            } else {
+                playSound('wrong');
+                buttonElement.classList.add('animate-pulse');
+                setTimeout(() => buttonElement.classList.remove('animate-pulse'), 500);
+                speakText("不太對喔，再數一遍看看！");
+            }
+        }
+
+
+        // --- 遊戲 2: 數字氣球碰！ (1 ~ 10 範圍 + 計時) ---
+        let targetNumber = 0;
+        let balloonTimer = null;
+        const balloonColors = [
+            'from-red-400 to-rose-400 border-rose-500',
+            'from-sky-400 to-blue-400 border-blue-500',
+            'from-green-400 to-emerald-400 border-emerald-500',
+            'from-yellow-400 to-amber-400 border-amber-500',
+            'from-purple-400 to-fuchsia-400 border-fuchsia-500',
+            'from-orange-400 to-amber-500 border-amber-600'
+        ];
+
+        function initBalloonLevel() {
+            clearInterval(balloonTimer);
+            const area = document.getElementById('balloon-area');
+            area.innerHTML = '';
+
+            targetNumber = Math.floor(Math.random() * 10) + 1;
+            document.getElementById('target-number-display').innerText = targetNumber;
+
+            setTimeout(() => {
+                speakText(`請找出數字：${targetNumber}`);
+            }, 300);
+
+            createBalloon();
+            balloonTimer = setInterval(createBalloon, 1500); 
+
+            // 記錄時間
+            levelStartTime = Date.now();
+        }
+
+        function createBalloon() {
+            if (currentGameMode !== 'balloon') {
+                clearInterval(balloonTimer);
+                return;
+            }
+
+            const area = document.getElementById('balloon-area');
+            const balloon = document.createElement('div');
+            
+            const isTarget = Math.random() < 0.35;
+            let balloonNum = targetNumber;
+            if (!isTarget) {
+                balloonNum = Math.floor(Math.random() * 10) + 1;
+                if (balloonNum === targetNumber) {
+                    balloonNum = (targetNumber % 10) + 1;
+                }
+            }
+
+            const colorClass = balloonColors[Math.floor(Math.random() * balloonColors.length)];
+            const randomX = Math.random() * 78 + 6; 
+            const randomSize = Math.floor(Math.random() * 25) + 95; 
+
+            balloon.className = `balloon flex flex-col items-center justify-center rounded-full bg-gradient-to-t ${colorClass} border-4 shadow-lg select-none`;
+            balloon.style.left = `${randomX}%`;
+            balloon.style.width = `${randomSize}px`;
+            balloon.style.height = `${randomSize * 1.22}px`;
+            
+            const string = document.createElement('div');
+            string.className = "w-1 h-12 bg-gray-400 absolute -bottom-10 left-1/2 transform -translate-x-1/2 rounded-full";
+            balloon.appendChild(string);
+
+            const text = document.createElement('span');
+            text.className = "text-white text-4xl md:text-5xl font-black drop-shadow-md z-10 select-none pointer-events-none";
+            text.innerText = balloonNum;
+            balloon.appendChild(text);
+
+            balloon.onclick = (e) => {
+                e.preventDefault();
+                popBalloon(balloon, balloonNum);
+            };
+
+            balloon.addEventListener('animationend', () => {
+                balloon.remove();
+            });
+
+            area.appendChild(balloon);
+        }
+
+        function popBalloon(balloonElement, num) {
+            if (num === targetNumber) {
+                playSound('pop');
+                balloonElement.style.animationPlayState = 'paused';
+                balloonElement.innerHTML = '<span class="text-6xl animate-ping">✨</span>';
+                
+                setTimeout(() => {
+                    balloonElement.remove();
+                }, 200);
+
+                clearInterval(balloonTimer);
+                const remaining = document.querySelectorAll('.balloon');
+                remaining.forEach(b => b.style.pointerEvents = 'none');
+
+                // 基礎分 1 星，不是雙重目標
+                showSuccess(1, false);
+            } else {
+                playSound('wrong');
+                balloonElement.classList.add('animate-bounce');
+                setTimeout(() => balloonElement.classList.remove('animate-bounce'), 500);
+                speakText(`這是數字 ${num}，不對喔！`);
+            }
+        }
+
+
+        // --- 遊戲 3: 糖果誰最多？ ---
+        let correctSide = ''; 
+
+        function initCompareLevel() {
+            const leftContainer = document.getElementById('compare-left-items');
+            const rightContainer = document.getElementById('compare-right-items');
+            leftContainer.innerHTML = '';
+            rightContainer.innerHTML = '';
+
+            let leftCount = Math.floor(Math.random() * 8) + 1;
+            let rightCount = Math.floor(Math.random() * 8) + 1;
+            while (leftCount === rightCount) {
+                rightCount = Math.floor(Math.random() * 8) + 1;
+            }
+
+            correctSide = leftCount > rightCount ? 'left' : 'right';
+
+            // 動態挑選水果圖案
+            const emojis = Object.keys(ALL_FRUITS);
+            const leftEmoji = emojis[Math.floor(Math.random() * (emojis.length / 2))];
+            const rightEmoji = emojis[Math.floor(Math.random() * (emojis.length / 2)) + Math.floor(emojis.length / 2)];
+
+            // 渲染左邊卡片
+            for (let i = 0; i < leftCount; i++) {
+                const el = document.createElement('span');
+                el.className = 'text-4xl md:text-5xl filter drop-shadow-sm transition transform hover:scale-110';
+                el.innerText = leftEmoji;
+                leftContainer.appendChild(el);
+            }
+
+            // 渲染右邊卡片
+            for (let i = 0; i < rightCount; i++) {
+                const el = document.createElement('span');
+                el.className = 'text-4xl md:text-5xl filter drop-shadow-sm transition transform hover:scale-110';
+                el.innerText = rightEmoji;
+                rightContainer.appendChild(el);
+            }
+
+            setTimeout(() => {
+                speakText("數一數，看一看，哪一邊的糖果比較多呢？");
+            }, 300);
+
+            // 記錄時間
+            levelStartTime = Date.now();
+        }
+
+        function checkCompareAnswer(clickedSide) {
+            const leftCard = document.getElementById('compare-left');
+            const rightCard = document.getElementById('compare-right');
+
+            if (clickedSide === correctSide) {
+                if (clickedSide === 'left') {
+                    leftCard.classList.add('bounce-active');
+                    setTimeout(() => leftCard.classList.remove('bounce-active'), 500);
+                } else {
+                    rightCard.classList.add('bounce-active');
+                    setTimeout(() => rightCard.classList.remove('bounce-active'), 500);
+                }
+                // 基礎分 1 星，不是雙重目標
+                showSuccess(1, false);
+            } else {
+                playSound('wrong');
+                const wrongCard = clickedSide === 'left' ? leftCard : rightCard;
+                wrongCard.classList.add('shake-active');
+                setTimeout(() => wrongCard.classList.remove('shake-active'), 400);
+
+                speakText("這隻小眼睛看錯囉，另一邊好像比較多喔！");
+            }
+        }
+
+        // 啟動首頁語音
+        window.onload = () => {
+            setTimeout(() => {
+                speakText("歡迎來到魔法數字樂園！快來挑戰最好玩的水果大混和吧！");
+            }, 500);
+        };
+    </script>
+</body>
+</html>
