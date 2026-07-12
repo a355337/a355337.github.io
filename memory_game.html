@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>森林動物派對 - 4~6歲幼兒翻牌遊戲</title>
+    <title>森林動物派對 - 4~6歲幼兒記憶拼讀遊戲</title>
     <!-- 引入 Tailwind CSS 進行精美排版 -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Google 字型：選用童趣且圓潤的 Fredoka Google Font -->
@@ -89,7 +89,7 @@
             100% { transform: scale(1.05); border-color: #f97316; }
         }
 
-        /* 魔法彩虹卡炫彩特效 */
+        /* 魔法彩虹卡特效 */
         .magic-card {
             background: linear-gradient(45deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%);
             animation: rainbow-glow 2s infinite alternate;
@@ -99,13 +99,13 @@
             100% { box-shadow: 0 0 25px #00ffff; }
         }
 
-        /* 字卡倒數進度條動畫 */
-        @keyframes shrink-width {
+        /* 字卡 6 秒自動關閉進度條（配合 3 次朗讀） */
+        @keyframes shrink-width-6s {
             0% { width: 100%; }
             100% { width: 0%; }
         }
-        .animate-progress-shrink {
-            animation: shrink-width 2.2s linear forwards;
+        .animate-progress-shrink-6s {
+            animation: shrink-width-6s 6.2s linear forwards;
         }
     </style>
 </head>
@@ -216,12 +216,13 @@
         };
     </script>
 
+    <!-- 主選單大廳 -->
     <div id="setup-screen" class="w-full max-w-md bg-white/90 backdrop-blur-md rounded-3xl p-6 shadow-2xl border-4 border-yellow-300 my-auto overflow-y-auto max-h-[90vh]">
         <div class="text-center">
             <h1 class="text-4xl font-extrabold text-amber-600 tracking-wider mb-2 animate-bounce-gentle">
                 🦁 森林動物派對 🐰
             </h1>
-            <p class="text-emerald-600 font-semibold mb-6">適合4~6歲寶貝的記憶翻牌挑戰！</p>
+            <p class="text-emerald-600 font-semibold mb-6">適合4~6歲寶貝的記憶翻牌拼讀挑戰！</p>
         </div>
 
         <!-- 選擇模式 -->
@@ -239,6 +240,7 @@
             </div>
         </div>
 
+        <!-- 選擇牌數 -->
         <div class="mb-5">
             <label class="block text-gray-700 text-lg font-bold mb-2">🎯 選擇牌子數量：</label>
             <div class="grid grid-cols-3 gap-2">
@@ -263,6 +265,7 @@
             </div>
         </div>
 
+        <!-- 選擇主題 -->
         <div class="mb-6">
             <label class="block text-gray-700 text-lg font-bold mb-2">🎨 選擇卡片主題：</label>
             <div class="grid grid-cols-4 gap-2">
@@ -287,6 +290,7 @@
         </button>
     </div>
 
+    <!-- 遊戲主畫面 -->
     <div id="game-screen" class="w-full max-w-5xl h-full bg-white/95 backdrop-blur-md rounded-3xl p-3 md:p-6 shadow-2xl border-4 border-emerald-300 my-auto hidden flex flex-col justify-between overflow-hidden">
         
         <!-- 上方控制區與計分板 -->
@@ -351,47 +355,95 @@
         </div>
     </div>
 
-    <!-- 💡 新增：中英文幼兒學習字卡 Modal (點選字卡任何地方可提早關閉) -->
+    <!-- 💡 核心新增：字母首音回顧考題挑戰區 -->
+    <div id="quiz-screen" class="w-full max-w-2xl h-full max-h-[90vh] bg-gradient-to-b from-amber-50 to-orange-50 rounded-3xl p-4 md:p-6 shadow-2xl border-8 border-amber-300 my-auto hidden flex flex-col justify-between overflow-y-auto">
+        <div class="text-center flex-shrink-0">
+            <h2 class="text-2xl md:text-3xl font-extrabold text-orange-600 mb-1">🧠 森林字母小達人挑戰！</h2>
+            <p class="text-sm text-amber-700 font-semibold mb-2">把剛剛配對成功的單字首字母找出來吧！</p>
+            <!-- 考題剩餘進度指示 -->
+            <div class="inline-block bg-amber-200/80 px-4 py-1.5 rounded-full text-xs md:text-sm font-extrabold text-amber-900 border border-amber-300">
+                🌟 還有 <span id="quiz-remaining-count" class="text-lg text-rose-600">0</span> 個單字要完成
+            </div>
+        </div>
+
+        <!-- 考題互動主要區塊 -->
+        <div class="bg-white rounded-3xl p-4 md:p-6 border-4 border-dashed border-amber-300 my-4 text-center shadow-inner flex flex-col items-center justify-center min-h-[300px]">
+            <!-- 大 Emoji 提示 -->
+            <div id="quiz-emoji" class="text-8xl md:text-9xl mb-3 select-none animate-bounce-gentle">🦁</div>
+            
+            <!-- 中文單字 -->
+            <div id="quiz-chinese" class="text-xl md:text-2xl font-black text-amber-800 tracking-wider mb-2">獅子</div>
+
+            <!-- 首字母填空英文單字 (首字首底線) -->
+            <div class="flex items-center justify-center gap-1.5 md:gap-3 text-4xl md:text-5xl font-black text-blue-600 tracking-wider">
+                <span id="quiz-letter-blank" class="text-rose-500 underline underline-offset-4 animate-pulse">_</span>
+                <span id="quiz-word-remainder">ion</span>
+            </div>
+            
+            <!-- 回饋提示 -->
+            <p id="quiz-feedback" class="text-sm md:text-base font-extrabold text-emerald-600 mt-4 h-6">請選擇正確的第一個字母開頭：</p>
+        </div>
+
+        <!-- 三個大氣球字母選項按鈕 -->
+        <div class="grid grid-cols-3 gap-3 md:gap-4 flex-shrink-0 mb-2">
+            <button onclick="checkQuizAnswer(this)" class="quiz-opt-btn h-16 md:h-20 bg-rose-400 hover:bg-rose-500 active:scale-95 text-white font-extrabold text-3xl md:text-4xl rounded-2xl shadow-lg border-b-8 border-rose-600 transition-all duration-100 flex items-center justify-center">A</button>
+            <button onclick="checkQuizAnswer(this)" class="quiz-opt-btn h-16 md:h-20 bg-amber-400 hover:bg-amber-500 active:scale-95 text-white font-extrabold text-3xl md:text-4xl rounded-2xl shadow-lg border-b-8 border-amber-600 transition-all duration-100 flex items-center justify-center">B</button>
+            <button onclick="checkQuizAnswer(this)" class="quiz-opt-btn h-16 md:h-20 bg-cyan-400 hover:bg-cyan-500 active:scale-95 text-white font-extrabold text-3xl md:text-4xl rounded-2xl shadow-lg border-b-8 border-cyan-600 transition-all duration-100 flex items-center justify-center">C</button>
+        </div>
+        
+        <!-- 下一題按鈕 (答對後才會浮現，或者自動進入) -->
+        <button id="quiz-next-btn" onclick="nextQuizQuestion()" class="w-full py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold text-xl rounded-2xl shadow-md border-b-4 border-emerald-700 transition-all hidden">
+            挑戰下一個單字 ➡️
+        </button>
+    </div>
+
+    <!-- 中英文幼兒學習字卡 Modal (首字顯示、3次朗讀、6秒倒數進度條) -->
     <div id="word-card-modal" onclick="hideWordCard()" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
-        <div class="bg-gradient-to-br from-amber-50 to-orange-100 rounded-3xl p-6 max-w-sm w-full text-center border-8 border-amber-300 shadow-2xl relative transform animate-pop-in cursor-pointer" onclick="event.stopPropagation()">
-            <!-- 關閉小按鈕 -->
+        <div class="bg-gradient-to-br from-amber-50 to-orange-100 rounded-3xl p-5 max-w-sm w-full text-center border-8 border-amber-300 shadow-2xl relative transform animate-pop-in cursor-pointer" onclick="event.stopPropagation()">
+            <!-- 關閉按鈕 -->
             <button onclick="hideWordCard()" class="absolute top-3 right-3 text-2xl font-bold text-amber-600 hover:text-amber-800 bg-white/80 rounded-full w-8 h-8 flex items-center justify-center">×</button>
             
-            <!-- 大 Emoji 展示區 -->
-            <div id="word-emoji" class="text-8xl md:text-9xl my-4 select-none animate-bounce-gentle">🦁</div>
+            <!-- 💡 核心新增：單字第一個英文字母大寫（黃金泡泡） -->
+            <div id="word-first-letter" class="mx-auto w-16 h-16 rounded-full bg-gradient-to-tr from-yellow-400 to-amber-500 border-4 border-white text-white flex items-center justify-center text-4xl font-extrabold shadow-lg mb-1 animate-bounce-gentle select-none">
+                L
+            </div>
+
+            <!-- 大 Emoji 展示 -->
+            <div id="word-emoji" class="text-7xl md:text-8xl my-2 select-none animate-bounce-gentle">🦁</div>
             
             <!-- 英文單字（大字） -->
-            <div class="flex items-center justify-center gap-2 mt-2">
+            <div class="flex items-center justify-center gap-2 mt-1">
                 <span id="word-english" class="text-4xl font-extrabold text-blue-600 tracking-wide">Lion</span>
-                <!-- 喇叭朗讀按鈕 (點擊不會關閉視窗) -->
-                <button onclick="replaySpeech(event)" class="bg-blue-500 hover:bg-blue-600 active:scale-95 text-white rounded-full p-2.5 shadow-md flex items-center justify-center transition-all">
+                <!-- 喇叭朗讀按鈕 (點擊重播 1 次) -->
+                <button onclick="replaySingleSpeech(event)" class="bg-blue-500 hover:bg-blue-600 active:scale-95 text-white rounded-full p-2.5 shadow-md flex items-center justify-center transition-all">
                     <span class="text-lg">🔊</span>
                 </button>
             </div>
             
             <!-- 中文單字 -->
-            <div id="word-chinese" class="text-2xl md:text-3xl font-black text-amber-800 mt-2 tracking-wider">獅子</div>
+            <div id="word-chinese" class="text-2xl font-black text-amber-800 mt-1 tracking-wider">獅子</div>
 
-            <!-- 自動關閉底線進度條 -->
-            <div class="w-full bg-amber-200 h-2 rounded-full mt-6 overflow-hidden">
+            <!-- 自動關閉 6 秒進度條 (配合 3 次朗讀，間隔 2 秒) -->
+            <div class="w-full bg-amber-200 h-2.5 rounded-full mt-4 overflow-hidden border border-amber-300">
                 <div id="word-progress" class="bg-gradient-to-r from-orange-400 to-amber-500 h-full w-full"></div>
             </div>
-            <p class="text-[10px] text-amber-700/60 font-semibold mt-1.5">點擊任意處可以提早繼續玩唷！</p>
+            <p class="text-[10px] text-amber-700/60 font-semibold mt-1.5">🔊 將會唸標準發音 3 次唷！點選任意處可略過</p>
         </div>
     </div>
 
+    <!-- 勝利通關 Modal -->
     <div id="victory-modal" class="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center p-4 z-50 hidden">
-        <div class="bg-white rounded-3xl p-6 md:p-8 max-w-md w-full text-center border-8 border-yellow-400 shadow-2xl relative transform transition-all scale-100">
+        <div class="bg-white rounded-3xl p-6 md:p-8 max-w-md w-full text-center border-8 border-yellow-400 shadow-2xl relative transform transition-all scale-100 animate-pop-in">
             <div class="absolute -top-16 left-1/2 transform -translate-x-1/2 text-7xl animate-bounce-gentle">👑</div>
             
-            <h2 id="victory-title" class="text-3xl md:text-4xl font-extrabold text-orange-600 mb-2">哇！你太棒了！🎉</h2>
-            <p id="victory-subtitle" class="text-emerald-600 font-bold text-lg mb-6">所有的森林牌子都找齊了！</p>
+            <h2 id="victory-title" class="text-3xl md:text-4xl font-extrabold text-orange-600 mb-2">太優秀了！🎉</h2>
+            <p id="victory-subtitle" class="text-emerald-600 font-bold text-lg mb-6">翻牌與英文拼讀挑戰全部過關！🌟</p>
             
-            <!-- 單人成績數據 -->
+            <!-- 單人成績 -->
             <div id="victory-single-stats" class="bg-amber-50 rounded-2xl p-4 border-2 border-amber-200 mb-6 hidden">
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <p class="text-gray-500 font-bold text-sm">⏱️ 這次花費時間</p>
+                        <p class="text-gray-500 font-bold text-sm">⏱️ 翻牌時間</p>
                         <p id="final-time" class="text-2xl font-black text-blue-600">00:00</p>
                     </div>
                     <div>
@@ -404,7 +456,7 @@
                 </div>
             </div>
 
-            <!-- 雙人成績數據 -->
+            <!-- 雙人成績 -->
             <div id="victory-double-stats" class="bg-cyan-50 rounded-2xl p-4 border-2 border-cyan-200 mb-6 hidden">
                 <div class="text-xl font-extrabold text-cyan-800 mb-3">最終比數</div>
                 <div class="flex justify-around items-center mb-2">
@@ -437,20 +489,21 @@
         </div>
     </div>
 
+    <!-- 底部版權 -->
     <footer id="game-footer" class="text-center text-[10px] md:text-xs text-emerald-800/60 font-semibold py-1 flex-shrink-0">
-        🌳 森林動物記憶派對 v1.2 - 親子互動快樂學習 🌳
+        🌳 森林動物記憶派對 v1.5 - 首音拼讀學習大進化 🌳
     </footer>
 
     <script>
         // --- 1. 卡片素材庫定義 (精選高對比且色彩鮮艷的Emoji) ---
         const Decks = {
-            animals: ['🦁', '🐰', '🐼', '🐯', '🐻', '🦊', '🐘', '🐵', '🐷', '🐸', '🐔', '🦉', '🐨', '🐙', '🐢', '🐬', '🐝', '🐞', '🦖', '🦄', '🦒', '🦓', '🐿️', '🐧', '🦀', '🐳', '🐫', '🦘', '🦥', '🦫', '🐏', '🐎', '🐊', '🐍', '🦎', '🐈', '🐕', '🐂', '🐏', '🐕‍🦺', '🐈‍⬛', '🐖', '🐓', '🦆', '🦢', '🦅', '🦉', '🦇', '🦋', '🐌'],
-            fruits: ['🍎', '🍌', '🍉', '🍇', '🍓', '🍒', '🍍', '🍑', '🍊', '🍋', '🥝', '🍈', '🍐', '🥭', '🥥', '🍅', '🥑', '🥦', '🥕', '🌽', '🌶️', '🥔', '🍠', '🧅', '🧄', '🥯', '🍞', '🥞', '🧇', '🧀', '🍔', '🍟', '🍕', '🌭', '🥪', '🌮', '🍿', '🍘', '🍙', '🍛', '🍜', '🍣', '🍤', '🍥', '🍡', '🥟', '🍢', '🍦', '🍧', '🍨'],
-            vehicles: ['🚗', '🚓', '🚒', '🚌', '🚕', '🚜', '🚚', '🚲', '🛴', '🛵', '🚂', '✈️', '🚀', '🚁', '🛳️', '🛶', '🚠', '⛵', '🚙', '🏎️', '🏍️', '🚆', '🚇', '🚈', '🚏', '⛽', '🛞', '⛴️', '🛸', '🛰️', '🪐', '⚓', '🚨', '🏁', '🚥', '🚧', '🗺️', '🧭', '🛹', '🛼'],
+            animals: ['🦁', '🐰', '🐼', '🐯', '🐻', '🦊', '🐘', '🐵', '🐷', '🐸', '🐔', '🦉', '🐨', '🐙', '🐢', '🐬', '🐝', '🐞', '🦖', '🦄', '🦒', '🦓', '🐿️', '🐧', '🦀', '🐳', '🐫', '🦘', '🦥', '🦫', '🐏', '🐎', '🐊', '🐍', '🦎', '🐈', '🐕', '🐂', '🐓', '🦆', '🦢', '🦅', '🦇', '🦋', '🐌'],
+            fruits: ['🍎', '🍌', '🍉', '🍇', '🍓', '🍒', '🍍', '🍑', '🍊', '🍋', '🥝', '🍈', '🍐', '🥭', '🥥', '🍅', '🥑', '🥦', '🥕', '🌽', '🌶️', '🥔', '🍠', '🧅', '🧄', '🥯', '🍞', '🥞', '🧇', '🧀', '🍔', '🍟', '🍕', '🌭', '🥪', '🌮', '🍿', '🍘', '🍙', '🍛', '🍜', '🍣', '🍤', '🍥', '🍡', '🥟', '🍢'],
+            vehicles: ['🚗', '🚓', '🚒', '🚌', '🚕', '🚜', '🚚', '🚲', '🛴', '🛵', '🚂', '✈️', '🚀', '🚁', '🛳️', '🛶', '🚠', '⛵', '🚙', '🏎️', '🏍️', '🚆', '🚇', '🚈', '🚌', '🚏', '⛽', '🛞', '🛸', '🛰️', '🪐', '⚓', '🚨', '🏁', '🚥', '🚧', '🗺️', '🧭', '🛹', '🛼'],
             sweets: ['🍦', '🍧', '🍨', '🍩', '🍪', '🎂', '🍰', '🧁', '🥧', '🍫', '🍬', '🍭', '🍮', '🍯', '🍿', '🥞', '🧇', '🍡', '🍵', '🧉', '🥤', '🧃', '🥛', '🍼']
         };
 
-        // --- 1.1 中英對照翻譯字典資料庫 (包含所有使用的 Emoji) ---
+        // --- 1.1 中英對照翻譯字典資料庫 (包含所有使用的 Emoji，確保首字母正常解析) ---
         const TranslationDb = {
             // Animals (動物)
             '🦁': { en: 'Lion', zh: '獅子' },
@@ -491,10 +544,6 @@
             '🐈': { en: 'Cat', zh: '貓咪' },
             '🐕': { en: 'Dog', zh: '狗狗' },
             '🐂': { en: 'Ox', zh: '公牛' },
-            '🐕‍🦺': { en: 'Guide Dog', zh: '導盲犬' },
-            '🐈‍⬛': { en: 'Black Cat', zh: '黑貓' },
-            '🐕‍🦺': { en: 'Service Dog', zh: '工作犬' },
-            '🐖': { en: 'Piggy', zh: '粉紅豬' },
             '🐓': { en: 'Rooster', zh: '公雞' },
             '🦆': { en: 'Duck', zh: '鴨子' },
             '🦢': { en: 'Swan', zh: '天鵝' },
@@ -514,7 +563,7 @@
             '🍑': { en: 'Peach', zh: '桃子' },
             '🍊': { en: 'Orange', zh: '橘子' },
             '🍋': { en: 'Lemon', zh: '檸檬' },
-            '🥝': { en: 'Kiwi Fruit', zh: '奇異果' },
+            '🥝': { en: 'Kiwi', zh: '奇異果' },
             '🍈': { en: 'Melon', zh: '哈密瓜' },
             '🍐': { en: 'Pear', zh: '西洋梨' },
             '🥭': { en: 'Mango', zh: '芒果' },
@@ -524,7 +573,7 @@
             '🥦': { en: 'Broccoli', zh: '青花菜' },
             '🥕': { en: 'Carrot', zh: '胡蘿蔔' },
             '🌽': { en: 'Corn', zh: '玉米' },
-            '🌶️': { en: 'Hot Pepper', zh: '辣椒' },
+            '🌶️': { en: 'Pepper', zh: '辣椒' },
             '🥔': { en: 'Potato', zh: '馬鈴薯' },
             '🍠': { en: 'Sweet Potato', zh: '地瓜' },
             '🧅': { en: 'Onion', zh: '洋蔥' },
@@ -535,7 +584,7 @@
             '🧇': { en: 'Waffle', zh: '格子鬆餅' },
             '🧀': { en: 'Cheese', zh: '起司' },
             '🍔': { en: 'Hamburger', zh: '漢堡' },
-            '🍟': { en: 'French Fries', zh: '薯條' },
+            '🍟': { en: 'Fries', zh: '薯條' },
             '🍕': { en: 'Pizza', zh: '披薩' },
             '🌭': { en: 'Hot Dog', zh: '熱狗' },
             '🥪': { en: 'Sandwich', zh: '三明治' },
@@ -543,10 +592,10 @@
             '🍿': { en: 'Popcorn', zh: '爆米花' },
             '🍘': { en: 'Rice Cracker', zh: '仙貝' },
             '🍙': { en: 'Rice Ball', zh: '飯糰' },
-            '🍛': { en: 'Curry Rice', zh: '咖哩飯' },
+            '🍛': { en: 'Curry', zh: '咖哩飯' },
             '🍜': { en: 'Ramen', zh: '拉麵' },
             '🍣': { en: 'Sushi', zh: '壽司' },
-            '🍤': { en: 'Fried Shrimp', zh: '炸蝦' },
+            '🍤': { en: 'Shrimp', zh: '炸蝦' },
             '🍥': { en: 'Fish Cake', zh: '魚板' },
             '🍡': { en: 'Dango', zh: '糰子' },
             '🥟': { en: 'Dumpling', zh: '水餃' },
@@ -559,66 +608,64 @@
             '🚌': { en: 'Bus', zh: '公車' },
             '🚕': { en: 'Taxi', zh: '計程車' },
             '🚜': { en: 'Tractor', zh: '牽引車' },
-            '🚚': { en: 'Delivery Truck', zh: '貨車' },
+            '🚚': { en: 'Truck', zh: '貨車' },
             '🚲': { en: 'Bicycle', zh: '腳踏車' },
-            '🛴': { en: 'Kick Scooter', zh: '滑板車' },
-            '🛵': { en: 'Scooter', zh: '摩托車' },
-            '🚂': { en: 'Steam Train', zh: '蒸汽火車' },
+            '🛴': { en: 'Scooter', zh: '滑板車' },
+            '🛵': { en: 'Motorcycle', zh: '摩托車' },
+            '🚂': { en: 'Train', zh: '火車' },
             '✈️': { en: 'Airplane', zh: '飛機' },
             '🚀': { en: 'Rocket', zh: '火箭' },
             '🚁': { en: 'Helicopter', zh: '直升機' },
             '🛳️': { en: 'Cruise Ship', zh: '遊輪' },
             '🛶': { en: 'Canoe', zh: '獨木舟' },
-            '🚠': { en: 'Mountain Cableway', zh: '纜車' },
+            '🚠': { en: 'Cableway', zh: '纜車' },
             '⛵': { en: 'Sailboat', zh: '帆船' },
             '🚙': { en: 'SUV', zh: '休旅車' },
             '🏎️': { en: 'Racing Car', zh: '賽車' },
-            '🏍️': { en: 'Motorcycle', zh: '重型機車' },
-            '🚆': { en: 'High-speed Train', zh: '高鐵火車' },
+            '🏍️': { en: 'Motorbike', zh: '機車' },
+            '🚆': { en: 'Train', zh: '高鐵火車' },
             '🚇': { en: 'Subway', zh: '地鐵' },
             '🚈': { en: 'Light Rail', zh: '輕軌' },
             '🚏': { en: 'Bus Stop', zh: '公車站' },
             '⛽': { en: 'Gas Pump', zh: '加油站' },
             '🛞': { en: 'Wheel', zh: '車輪' },
-            '⛴️': { en: 'Ferry', zh: '渡輪' },
             '🛸': { en: 'UFO', zh: '飛碟' },
             '🛰️': { en: 'Satellite', zh: '衛星' },
-            '🪐': { en: 'Ringed Planet', zh: '土星' },
-            '⚓': { en: 'Ship Anchor', zh: '船錨' },
-            '🚨': { en: 'Police Light', zh: '警示燈' },
-            '🏁': { en: 'Chequered Flag', zh: '賽車旗' },
+            '🪐': { en: 'Planet', zh: '土星' },
+            '⚓': { en: 'Anchor', zh: '船錨' },
+            '🚨': { en: 'Siren', zh: '警示燈' },
+            '🏁': { en: 'Finish Flag', zh: '賽車旗' },
             '🚥': { en: 'Traffic Light', zh: '紅綠燈' },
-            '🚧': { en: 'Construction Barrier', zh: '路障' },
-            '🗺️': { en: 'World Map', zh: '地圖' },
+            '🚧': { en: 'Barrier', zh: '路障' },
+            '🗺️': { en: 'Map', zh: '地圖' },
             '🧭': { en: 'Compass', zh: '指南針' },
             '🛹': { en: 'Skateboard', zh: '滑板' },
             '🛼': { en: 'Roller Skates', zh: '溜冰鞋' },
 
             // Sweets (甜點)
-            '🍦': { en: 'Soft Ice Cream', zh: '霜淇淋' },
+            '🍦': { en: 'Ice Cream', zh: '霜淇淋' },
             '🍧': { en: 'Shaved Ice', zh: '刨冰' },
-            '🍨': { en: 'Ice Cream Cup', zh: '冰淇淋' },
-            '🍩': { en: 'Doughnut', zh: '甜甜圈' },
+            '🍨': { en: 'Gelato', zh: '冰淇淋' },
+            '🍩': { en: 'Donut', zh: '甜甜圈' },
             '🍪': { en: 'Cookie', zh: '餅乾' },
-            '🎂': { en: 'Birthday Cake', zh: '生日蛋糕' },
+            '🎂': { en: 'Cake', zh: '生日蛋糕' },
             '🍰': { en: 'Shortcake', zh: '草莓蛋糕' },
             '🧁': { en: 'Cupcake', zh: '杯子蛋糕' },
-            'Pie': { en: 'Fruit Pie', zh: '水果派' },
             '🥧': { en: 'Pie', zh: '水果派' },
-            '🍫': { en: 'Chocolate Bar', zh: '巧克力' },
-            '🍬': { en: 'Sweet Candy', zh: '糖果' },
+            '🍫': { en: 'Chocolate', zh: '巧克力' },
+            '🍬': { en: 'Candy', zh: '糖果' },
             '🍭': { en: 'Lollipop', zh: '棒棒糖' },
-            '🍮': { en: 'Custard Pudding', zh: '布丁' },
+            '🍮': { en: 'Pudding', zh: '布丁' },
             '🍯': { en: 'Honey Pot', zh: '蜂蜜罐' },
             '🍵': { en: 'Green Tea', zh: '綠茶' },
-            '🧉': { en: 'Coconut Drink', zh: '椰汁飲料' },
-            '🥤': { en: 'Cup with Straw', zh: '汽水杯' },
+            '🧉': { en: 'Coconut Juice', zh: '椰汁飲料' },
+            '🥤': { en: 'Soda Cup', zh: '汽水杯' },
             '🧃': { en: 'Juice Box', zh: '鋁箔包果汁' },
-            '🥛': { en: 'Glass of Milk', zh: '牛奶' },
+            '🥛': { en: 'Milk Glass', zh: '牛奶' },
             '🍼': { en: 'Baby Bottle', zh: '奶瓶' },
 
             // Special
-            '🌈': { en: 'Magic Rainbow', zh: '彩虹魔法卡' }
+            '🌈': { en: 'Rainbow', zh: '彩虹魔法卡' }
         };
 
         // --- 2. 遊戲核心狀態變數 ---
@@ -635,10 +682,16 @@
         // 奇數牌組輔助狀態
         let hasMagicCard = false;   // 是否包含魔法彩虹卡
 
-        // 💡 新增：單字卡控制變數
+        // 💡 學習字卡 & 語音排程控制
         let isWordCardActive = false;
         let wordCardTimer = null;
+        let speechTimeoutIds = [];  // 用來清空三次朗讀的排程
         let currentActiveEnglishWord = '';
+
+        // 💡 新增：考題回顧模式核心變數
+        let remainingQuizWords = []; // 目前尚未答對的單字題庫列表
+        let currentQuizIndex = 0;   // 當前挑戰的單字索引
+        let isQuizAnsweringBlocked = false; // 答對發音期間鎖定選項
 
         // 單人模式變數
         let timerInterval = null;
@@ -690,6 +743,7 @@
         function startGame() {
             AudioSynth.play('match');
             document.getElementById('setup-screen').classList.add('hidden');
+            document.getElementById('quiz-screen').classList.add('hidden');
             document.getElementById('game-screen').classList.remove('hidden');
 
             bestRecordKey = `forest_memory_best_${currentGridSize}x${currentGridSize}_${currentTheme}`;
@@ -703,7 +757,9 @@
 
         function quitToSetup() {
             stopTimer();
+            cancelAllPronunciation();
             document.getElementById('game-screen').classList.add('hidden');
+            document.getElementById('quiz-screen').classList.add('hidden');
             document.getElementById('victory-modal').classList.add('hidden');
             document.getElementById('setup-screen').classList.remove('hidden');
             AudioSynth.play('flip');
@@ -711,6 +767,8 @@
 
         function resetGame() {
             stopTimer();
+            cancelAllPronunciation();
+            document.getElementById('quiz-screen').classList.add('hidden');
             document.getElementById('victory-modal').classList.add('hidden');
             resetGameState();
             setupDashboard();
@@ -825,70 +883,57 @@
             }
         }
 
-        // --- 5. 渲染網格：動態百分比高度自適應與極致防捲軸縮放 ---
+        // --- 5. 渲染網格：動態高度自適應，極致防捲軸縮放 ---
         function renderGrid() {
             const gridContainer = document.getElementById('cards-grid');
             gridContainer.innerHTML = '';
 
-            // 使用 CSS Grid 欄寬度與高度完全等比等分，確保卡片形狀能完美對齊 gridContainer
             gridContainer.style.gridTemplateColumns = `repeat(${currentGridSize}, 1fr)`;
             gridContainer.style.gridTemplateRows = `repeat(${currentGridSize}, 1fr)`;
             
-            // 根據格子數量動態調整 Emoji 圖案和問號 ❓ 的字型大小，讓圖案盡量撐滿正方形！
             let emojiSizeClass = '';
             let questionSizeClass = '';
 
             if (currentGridSize <= 3) {
-                // 3x3 超級大圖案 (無比醒目！)
                 emojiSizeClass = 'text-5xl sm:text-7xl md:text-8xl';
                 questionSizeClass = 'text-4xl sm:text-5xl md:text-6xl';
             } else if (currentGridSize === 4) {
-                // 4x4 經典大圖案
                 emojiSizeClass = 'text-4xl sm:text-6xl md:text-7xl';
                 questionSizeClass = 'text-3xl sm:text-4xl md:text-5xl';
             } else if (currentGridSize <= 6) {
-                // 5x5 與 6x6
                 emojiSizeClass = 'text-2xl sm:text-4xl md:text-5xl';
                 questionSizeClass = 'text-2xl sm:text-3xl md:text-4xl';
             } else if (currentGridSize <= 8) {
-                // 8x8 記憶王
                 emojiSizeClass = 'text-lg sm:text-2xl md:text-3xl';
                 questionSizeClass = 'text-base sm:text-xl md:text-2xl';
             } else {
-                // 10x10 終極模式
                 emojiSizeClass = 'text-xs sm:text-base md:text-xl';
                 questionSizeClass = 'text-[10px] sm:text-sm md:text-base';
             }
 
             cards.forEach((card, index) => {
                 const cardEl = document.createElement('div');
-                // 採用 relative w-full h-full。因為 grid 容器本身已被設定為正方形，所以每張卡片必為正方形
                 cardEl.className = `card-container relative w-full h-full cursor-pointer`;
                 cardEl.dataset.index = index;
                 cardEl.dataset.id = card.id;
 
-                // 彩虹魔法卡獨家炫彩效果
                 const backStyleClass = card.isMagic ? 'magic-card' : 'text-slate-800';
 
                 cardEl.innerHTML = `
                     <div class="card-inner">
-                        <!-- 卡片背面 (問號與精美漸層背景) -->
                         <div class="card-front">
                             <span class="${questionSizeClass} font-bold select-none">❓</span>
                         </div>
-                        <!-- 卡片正面 (呈現超大 Emoji 圖案) -->
                         <div class="card-back ${backStyleClass}">
                             <span class="${emojiSizeClass} select-none leading-none flex items-center justify-center w-full h-full">${card.emoji}</span>
                         </div>
                     </div>
                 `;
 
-                // 滑鼠點擊與行動裝置輕觸通用
                 cardEl.addEventListener('click', () => handleCardClick(cardEl, index));
                 gridContainer.appendChild(cardEl);
             });
 
-            // 渲染完畢後，立即執行畫面縮放校正，杜絕滑動條
             setTimeout(resizeGameGrid, 50);
         }
 
@@ -900,237 +945,117 @@
             const gridContainer = document.getElementById('cards-grid');
             if (!gridContainer) return;
 
-            // 1. 計算可用寬度：網格父容器之寬度（再保留一些安全緩衝邊距）
             const parent = gridContainer.parentElement;
             const availWidth = parent.clientWidth - 16; 
 
-            // 2. 計算可用高度：瀏覽器目前視窗高度，扣除控制列、提示卡及底部資訊的高度
             const viewportHeight = window.innerHeight;
             const header = document.getElementById('game-header');
             const magicTip = document.getElementById('odd-magic-tip');
             const turnBanner = document.getElementById('turn-banner');
             const footer = document.getElementById('game-footer');
 
-            let occupiedHeight = 50; // 安全緩衝高度（包括外邊距 padding / margin 等）
+            let occupiedHeight = 50; 
             if (header) occupiedHeight += header.offsetHeight;
             if (magicTip && !magicTip.classList.contains('hidden')) occupiedHeight += magicTip.offsetHeight;
             if (turnBanner && !turnBanner.classList.contains('hidden')) occupiedHeight += turnBanner.offsetHeight;
             if (footer) occupiedHeight += footer.offsetHeight;
 
-            const availHeight = viewportHeight - occupiedHeight - 30; // 扣除剩餘安全間隔
-
-            // 3. 設定網格為「完美正方形」，大小為「可用寬度與可用高度的最小值」
-            // 最小不可低於 180px，最大限制為 650px，確保大螢幕平板/電腦上的美觀
+            const availHeight = viewportHeight - occupiedHeight - 30; 
             const size = Math.max(180, Math.min(availWidth, availHeight, 650));
 
             gridContainer.style.width = `${size}px`;
             gridContainer.style.height = `${size}px`;
         }
 
-        // 綁定視窗 resize 事件，只要使用者轉動平板、變更大小，即時重新計算，不產生捲軸！
         window.addEventListener('resize', resizeGameGrid);
 
-        // --- 6. 卡片點擊與配對判斷邏輯 ---
-        function handleCardClick(cardEl, index) {
-            if (!canFlip) return;
-            if (cardEl.classList.contains('flipped') || cardEl.classList.contains('matched')) return;
-
-            const cardData = cards[index];
-
-            if (currentMode === 'single') {
-                flipCount++;
-                document.getElementById('flips-display').innerText = flipCount;
-            }
-
-            cardEl.classList.add('flipped');
-            
-            if (cardData.isMagic) {
-                // 魔法彩虹卡觸發：連續向上炫爛音效與閃爍特效！
-                AudioSynth.play('magic');
-                triggerMagicSparkle(cardEl);
-                canFlip = false;
-
-                setTimeout(() => {
-                    cardEl.classList.add('matched');
-                    cardEl.style.opacity = '0.5';
-                    cardEl.style.pointerEvents = 'none';
-                    
-                    matchedPairs++;
-                    
-                    if (currentMode === 'double') {
-                        if (currentPlayer === 1) {
-                            player1Score++;
-                            document.getElementById('p1-score').innerText = player1Score;
-                        } else {
-                            player2Score++;
-                            document.getElementById('p2-score').innerText = player2Score;
-                        }
-                    }
-
-                    canFlip = true;
-                    checkGameEnd();
-                }, 1000);
-
-                return;
-            }
-
-            AudioSynth.play('flip');
-            flippedCards.push({ element: cardEl, data: cardData });
-
-            if (flippedCards.length === 2) {
-                canFlip = false;
-                const card1 = flippedCards[0];
-                const card2 = flippedCards[1];
-
-                if (card1.data.emoji === card2.data.emoji) {
-                    // 配對成功
-                    setTimeout(() => {
-                        card1.element.classList.add('matched');
-                        card2.element.classList.add('matched');
-                        
-                        card1.element.style.opacity = '0.5';
-                        card2.element.style.opacity = '0.5';
-
-                        AudioSynth.play('match');
-                        matchedPairs++;
-
-                        if (currentMode === 'double') {
-                            if (currentPlayer === 1) {
-                                player1Score++;
-                                document.getElementById('p1-score').innerText = player1Score;
-                            } else {
-                                player2Score++;
-                                document.getElementById('p2-score').innerText = player2Score;
-                            }
-                        }
-
-                        flippedCards = [];
-                        canFlip = true;
-                        checkGameEnd();
-                    }, 600);
-                } else {
-                    // 配對失敗
-                    setTimeout(() => {
-                        card1.element.classList.remove('flipped');
-                        card2.element.classList.remove('flipped');
-                        
-                        AudioSynth.play('mismatch');
-
-                        if (currentMode === 'double') {
-                            currentPlayer = currentPlayer === 1 ? 2 : 1;
-                            updatePlayerTurnUI();
-                        }
-
-                        flippedCards = [];
-                        canFlip = true;
-                    }, 1200);
-                }
-            }
-        }
-
-        function triggerMagicSparkle(element) {
-            const inner = element.querySelector('.card-back');
-            inner.style.border = '6px solid #f43f5e';
-            let flashCount = 0;
-            const flashInterval = setInterval(() => {
-                inner.style.borderColor = flashCount % 2 === 0 ? '#10b981' : '#f43f5e';
-                flashCount++;
-                if (flashCount > 6) {
-                    clearInterval(flashInterval);
-                    inner.style.borderColor = '#e11d48';
-                }
-            }, 150);
-        }
-
-        // --- 7. 計時器控制 ---
-        function startTimer() {
-            secondsElapsed = 0;
-            if (currentMode === 'single') {
-                timerInterval = setInterval(() => {
-                    // 💡 如果字卡彈出，計時器暫停，對小朋友更公平！
-                    if (!isWordCardActive) {
-                        secondsElapsed++;
-                        document.getElementById('timer-display').innerText = formatTime(secondsElapsed);
-                    }
-                }, 1000);
-            }
-        }
-
-        function stopTimer() {
-            if (timerInterval) {
-                clearInterval(timerInterval);
-                timerInterval = null;
-            }
-        }
-
-        function formatTime(totalSeconds) {
-            const mins = Math.floor(totalSeconds / 60);
-            const secs = totalSeconds % 60;
-            return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-        }
-
-        // --- 7.1 英文語音朗讀 TTS 發音系統 ---
+        // --- 6. 語音發音系統 ---
+        // 朗讀單音節
         function speakWord(englishText) {
             if ('speechSynthesis' in window) {
-                // 先取消所有之前的朗讀，防止堆疊
-                window.speechSynthesis.cancel();
-                
                 const utterance = new SpeechSynthesisUtterance(englishText);
-                utterance.lang = 'en-US'; // 美式英語
-                utterance.rate = 0.8;      // 0.8 倍速，語速稍慢，適合4~6歲孩子聽清楚字母發音
-                utterance.pitch = 1.1;     // 音調稍高一點，更有朝氣與親切感
-                
+                utterance.lang = 'en-US'; 
+                utterance.rate = 0.75; // 稍慢的親切語速
+                utterance.pitch = 1.1;  // 朝氣高音調
                 window.speechSynthesis.speak(utterance);
             }
         }
 
-        // 當點按喇叭按鈕，重新播放語音
-        function replaySpeech(event) {
-            event.stopPropagation(); // 阻止事件冒泡 (防止點喇叭時把字卡給關閉了)
+        // 💡 核心新增：念三次且每次間隔兩秒
+        function speakWordThreeTimes(englishText) {
+            cancelAllPronunciation(); // 先清空前一次的所有朗讀
+            
+            // 第一次朗讀 (0s)
+            speakWord(englishText);
+
+            // 第二次朗讀 (2s)
+            const id2 = setTimeout(() => {
+                speakWord(englishText);
+            }, 2000);
+            speechTimeoutIds.push(id2);
+
+            // 第三次朗讀 (4s)
+            const id3 = setTimeout(() => {
+                speakWord(englishText);
+            }, 4000);
+            speechTimeoutIds.push(id3);
+        }
+
+        // 清空所有朗讀與排程，防止聲音重疊或卡關
+        function cancelAllPronunciation() {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+            }
+            speechTimeoutIds.forEach(clearTimeout);
+            speechTimeoutIds = [];
+        }
+
+        // 單次重播喇叭按鈕
+        function replaySingleSpeech(event) {
+            event.stopPropagation();
             if (currentActiveEnglishWord) {
                 speakWord(currentActiveEnglishWord);
             }
         }
 
-        // --- 7.2 單字字卡呈現與關閉控制邏輯 ---
+        // --- 6.1 字卡顯示控制 (6秒進度條自動關閉) ---
         function showWordCard(emoji, onDismissCallback) {
             isWordCardActive = true;
             
-            // 查字典取得中英文翻譯
-            const wordData = TranslationDb[emoji] || { en: 'Forest Friend', zh: '森林好朋友' };
+            const wordData = TranslationDb[emoji] || { en: 'Magic Card', zh: '彩虹魔法卡' };
             currentActiveEnglishWord = wordData.en;
 
-            // 寫入 Modal 內容
+            // 💡 核心新增：提取首字母大寫並填入頂部黃金泡泡
+            const firstLetter = wordData.en.trim().charAt(0).toUpperCase();
+            document.getElementById('word-first-letter').innerText = firstLetter;
+
             document.getElementById('word-emoji').innerText = emoji;
             document.getElementById('word-english').innerText = wordData.en;
             document.getElementById('word-chinese').innerText = wordData.zh;
 
-            // 顯示 Modal
             const modal = document.getElementById('word-card-modal');
             modal.classList.remove('hidden');
 
-            // 啟動朗讀
-            setTimeout(() => {
-                speakWord(wordData.en);
-            }, 100);
+            // 💡 朗讀 3 次
+            speakWordThreeTimes(wordData.en);
 
-            // 重設進度條動畫：先移除 class 再加上去觸發動畫重設
+            // 啟動 6 秒進度條動畫
             const progressBar = document.getElementById('word-progress');
-            progressBar.classList.remove('animate-progress-shrink');
-            void progressBar.offsetWidth; // 強制重繪
-            progressBar.classList.add('animate-progress-shrink');
+            progressBar.classList.remove('animate-progress-shrink-6s');
+            void progressBar.offsetWidth; 
+            progressBar.classList.add('animate-progress-shrink-6s');
 
-            // 儲存暫存回呼函式，當字卡關閉時調用
             modal.onDismiss = () => {
-                progressBar.classList.remove('animate-progress-shrink');
+                progressBar.classList.remove('animate-progress-shrink-6s');
+                cancelAllPronunciation();
                 if (onDismissCallback) onDismissCallback();
             };
 
-            // 設定 2.2 秒後自動消失
+            // 6.2 秒後自動關閉
             clearTimeout(wordCardTimer);
             wordCardTimer = setTimeout(() => {
                 hideWordCard();
-            }, 2200);
+            }, 6200);
         }
 
         function hideWordCard() {
@@ -1140,16 +1065,14 @@
             modal.classList.add('hidden');
             isWordCardActive = false;
             
-            // 執行隱藏後的後續動作 (例如放開卡牌操作或判斷過關)
             if (modal.onDismiss) {
                 modal.onDismiss();
                 modal.onDismiss = null;
             }
         }
 
-        // --- 8. 卡片點擊與配對判斷邏輯 ---
+        // --- 7. 卡片點擊與配對判斷邏輯 ---
         function handleCardClick(cardEl, index) {
-            // 如果鎖定翻牌，或是單字卡正在顯示中，禁止操作
             if (!canFlip || isWordCardActive) return;
             if (cardEl.classList.contains('flipped') || cardEl.classList.contains('matched')) return;
 
@@ -1163,7 +1086,6 @@
             cardEl.classList.add('flipped');
             
             if (cardData.isMagic) {
-                // 魔法彩虹卡觸發：連續向上炫爛音效與閃爍特效！
                 AudioSynth.play('magic');
                 triggerMagicSparkle(cardEl);
                 canFlip = false;
@@ -1185,7 +1107,6 @@
                         }
                     }
 
-                    // 💡 配對成功時跳出單字字卡，字卡讀完後才判斷是否結束與解鎖翻牌
                     showWordCard('🌈', () => {
                         canFlip = true;
                         checkGameEnd();
@@ -1227,7 +1148,6 @@
 
                         flippedCards = [];
 
-                        // 💡 配對成功時跳出單字字卡，播完後才判斷是否結束並放行翻下一次
                         showWordCard(card1.data.emoji, () => {
                             canFlip = true;
                             checkGameEnd();
@@ -1267,59 +1187,246 @@
             }, 150);
         }
 
-        // --- 9. 遊戲結束通關與計分統計 ---
-        function checkGameEnd() {
-            if (matchedPairs === totalPairsNeeded) {
-                stopTimer();
-                AudioSynth.play('win');
-                startConfetti();
-
-                setTimeout(() => {
-                    const modal = document.getElementById('victory-modal');
-                    const singleStats = document.getElementById('victory-single-stats');
-                    const doubleStats = document.getElementById('victory-double-stats');
-                    
-                    if (currentMode === 'single') {
-                        singleStats.classList.remove('hidden');
-                        doubleStats.classList.add('hidden');
-
-                        document.getElementById('final-time').innerText = formatTime(secondsElapsed);
-                        document.getElementById('final-flips').innerText = `${flipCount} 次`;
-
-                        const best = localStorage.getItem(bestRecordKey);
-                        const recordTag = document.getElementById('new-record-tag');
-                        if (!best || secondsElapsed < parseInt(best)) {
-                            localStorage.setItem(bestRecordKey, secondsElapsed);
-                            recordTag.classList.remove('hidden');
-                        } else {
-                            recordTag.classList.add('hidden');
-                        }
-                    } else {
-                        singleStats.classList.add('hidden');
-                        doubleStats.classList.remove('hidden');
-
-                        document.getElementById('v-p1-score').innerText = `${player1Score} 分`;
-                        document.getElementById('v-p2-score').innerText = `${player2Score} 分`;
-
-                        const winnerAnnounce = document.getElementById('winner-announcement');
-                        if (player1Score > player2Score) {
-                            winnerAnnounce.innerHTML = "👑 恭喜 【 🦁 獅子隊 】 獲勝囉！";
-                            winnerAnnounce.className = "text-2xl font-black text-rose-600 mt-4 border-t-2 border-dashed border-cyan-200 pt-3";
-                        } else if (player2Score > player1Score) {
-                            winnerAnnounce.innerHTML = "👑 恭喜 【 🐰 兔子隊 】 獲勝囉！";
-                            winnerAnnounce.className = "text-2xl font-black text-cyan-600 mt-4 border-t-2 border-dashed border-cyan-200 pt-3";
-                        } else {
-                            winnerAnnounce.innerHTML = "🤝 太厲害了！大家平手！";
-                            winnerAnnounce.className = "text-2xl font-black text-amber-500 mt-4 border-t-2 border-dashed border-cyan-200 pt-3";
-                        }
+        // --- 7.1 計時器控制 ---
+        function startTimer() {
+            secondsElapsed = 0;
+            if (currentMode === 'single') {
+                timerInterval = setInterval(() => {
+                    if (!isWordCardActive) {
+                        secondsElapsed++;
+                        document.getElementById('timer-display').innerText = formatTime(secondsElapsed);
                     }
-
-                    modal.classList.remove('hidden');
-                }, 800);
+                }, 1000);
             }
         }
 
-        // --- 9. 全螢幕五彩彩帶慶祝動畫 ---
+        function stopTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+        }
+
+        function formatTime(totalSeconds) {
+            const mins = Math.floor(totalSeconds / 60);
+            const secs = totalSeconds % 60;
+            return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        // --- 8. 💡 核心新增：首音回顧考題邏輯 ---
+        function startReviewQuiz() {
+            // 收集這局配對成功的非魔法Emoji（保證題庫唯一性與中英庫一致性）
+            const matchedSet = new Set();
+            cards.forEach(card => {
+                if (!card.isMagic && TranslationDb[card.emoji]) {
+                    matchedSet.add(card.emoji);
+                }
+            });
+
+            remainingQuizWords = Array.from(matchedSet);
+            currentQuizIndex = 0;
+
+            if (remainingQuizWords.length === 0) {
+                // 如果沒有能考的（例如超奇葩狀況），直接過關
+                showVictoryModal();
+                return;
+            }
+
+            // 切換畫面：隱藏遊戲畫面，顯示考題畫面
+            document.getElementById('game-screen').classList.add('hidden');
+            document.getElementById('quiz-screen').classList.remove('hidden');
+
+            loadQuizQuestion();
+        }
+
+        // 載入當前考題
+        function loadQuizQuestion() {
+            isQuizAnsweringBlocked = false;
+            document.getElementById('quiz-next-btn').classList.add('hidden');
+            document.getElementById('quiz-feedback').innerText = "請選擇正確的第一個字母開頭：";
+            document.getElementById('quiz-feedback').className = "text-sm md:text-base font-extrabold text-amber-700 mt-4 h-6";
+
+            // 如果全部答對了，完成挑戰！
+            if (remainingQuizWords.length === 0) {
+                showVictoryModal();
+                return;
+            }
+
+            // 超界防護（循環指針）
+            if (currentQuizIndex >= remainingQuizWords.length) {
+                currentQuizIndex = 0;
+            }
+
+            const currentEmoji = remainingQuizWords[currentQuizIndex];
+            const wordData = TranslationDb[currentEmoji];
+
+            // 題目資訊更新
+            document.getElementById('quiz-remaining-count').innerText = remainingQuizWords.length;
+            document.getElementById('quiz-emoji').innerText = currentEmoji;
+            document.getElementById('quiz-chinese').innerText = wordData.zh;
+
+            // 英文單字拼裝 (例如 "Lion" -> 首音 "_", 剩餘 "ion")
+            const engWord = wordData.en.trim();
+            const correctFirstLetter = engWord.charAt(0).toUpperCase();
+            const remainder = engWord.slice(1);
+
+            document.getElementById('quiz-letter-blank').innerText = "_";
+            document.getElementById('quiz-letter-blank').className = "text-rose-500 underline underline-offset-4 animate-pulse";
+            document.getElementById('quiz-word-remainder').innerText = remainder;
+
+            // 產生隨機 3 個選項 (1 正確 + 2 錯誤)
+            const lettersPool = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split('');
+            const wrongPool = lettersPool.filter(l => l !== correctFirstLetter);
+            shuffleArray(wrongPool);
+            
+            const options = [correctFirstLetter, wrongPool[0], wrongPool[1]];
+            shuffleArray(options); // 打亂選項順序
+
+            // 將選項渲染上按鈕
+            const optButtons = document.querySelectorAll('.quiz-opt-btn');
+            options.forEach((opt, idx) => {
+                optButtons[idx].innerText = opt;
+                // 重置按鈕樣式與防點擊狀態
+                optButtons[idx].disabled = false;
+                optButtons[idx].style.opacity = '1';
+                optButtons[idx].className = optButtons[idx].className.replace(/border-[a-z]+-600/g, ''); 
+                // 恢復原主題邊框
+                if (idx === 0) optButtons[idx].classList.add('border-rose-600');
+                if (idx === 1) optButtons[idx].classList.add('border-amber-600');
+                if (idx === 2) optButtons[idx].classList.add('border-cyan-600');
+            });
+        }
+
+        // 判斷作答
+        function checkQuizAnswer(clickedBtn) {
+            if (isQuizAnsweringBlocked) return;
+
+            const selectedLetter = clickedBtn.innerText;
+            const currentEmoji = remainingQuizWords[currentQuizIndex];
+            const wordData = TranslationDb[currentEmoji];
+            const correctFirstLetter = wordData.en.trim().charAt(0).toUpperCase();
+
+            // 鎖定本題所有選項，防止二次重疊點擊
+            isQuizAnsweringBlocked = true;
+            document.querySelectorAll('.quiz-opt-btn').forEach(btn => btn.disabled = true);
+
+            if (selectedLetter === correctFirstLetter) {
+                // 答對了！
+                AudioSynth.play('match');
+                
+                // 將空白底線置換成正確字母，並移除閃爍動畫
+                document.getElementById('quiz-letter-blank').innerText = correctFirstLetter;
+                document.getElementById('quiz-letter-blank').className = "text-emerald-500 font-extrabold";
+                document.getElementById('quiz-feedback').innerText = "🎉 答對囉！你真厲害！";
+                document.getElementById('quiz-feedback').className = "text-lg font-black text-emerald-600 mt-4 h-6 animate-bounce";
+
+                // 將該單字移出待挑戰題庫
+                remainingQuizWords.splice(currentQuizIndex, 1);
+
+                // 💡 核心新增：答對朗讀該英文單字 3 次 (間隔 2 秒)
+                speakWordThreeTimes(wordData.en);
+
+                // 顯示下一個單字按鈕 (允許小朋友快速按下一題，或 6 秒後自動進入)
+                document.getElementById('quiz-next-btn').classList.remove('hidden');
+
+                // 6.2 秒後自動進入下一題 (配合 3 次朗讀，間隔 2 秒)
+                clearTimeout(wordCardTimer);
+                wordCardTimer = setTimeout(() => {
+                    nextQuizQuestion();
+                }, 6200);
+
+            } else {
+                // 答錯了！
+                AudioSynth.play('mismatch');
+
+                document.getElementById('quiz-feedback').innerText = `❌ 答錯囉！是 ${correctFirstLetter} 開頭才對唷！`;
+                document.getElementById('quiz-feedback').className = "text-sm md:text-base font-extrabold text-rose-500 mt-4 h-6";
+
+                // 將錯字按鈕反灰
+                clickedBtn.style.opacity = '0.5';
+
+                // 答錯不移出題庫，輪盤指針前進到下一題
+                currentQuizIndex++;
+
+                // 2.5 秒後標準發音 1 次並直接自動進入下一題挑戰
+                speakWord(wordData.en);
+                clearTimeout(wordCardTimer);
+                wordCardTimer = setTimeout(() => {
+                    loadQuizQuestion();
+                }, 2500);
+            }
+        }
+
+        // 手動前往下一題
+        function nextQuizQuestion() {
+            cancelAllPronunciation();
+            clearTimeout(wordCardTimer);
+            loadQuizQuestion();
+        }
+
+        // --- 9. 遊戲配對完成轉接考題挑戰 ---
+        function checkGameEnd() {
+            if (matchedPairs === totalPairsNeeded) {
+                stopTimer();
+                cancelAllPronunciation();
+                
+                // 💡 核心變更：不再直接彈出勝利對話框，改為轉接「字母回顧考題」
+                setTimeout(() => {
+                    startReviewQuiz();
+                }, 1000);
+            }
+        }
+
+        // 真正的全部考完 -> 彈出勝利 Modal 慶祝！
+        function showVictoryModal() {
+            cancelAllPronunciation();
+            AudioSynth.play('win');
+            startConfetti();
+
+            document.getElementById('quiz-screen').classList.add('hidden');
+            const modal = document.getElementById('victory-modal');
+            const singleStats = document.getElementById('victory-single-stats');
+            const doubleStats = document.getElementById('victory-double-stats');
+            
+            if (currentMode === 'single') {
+                singleStats.classList.remove('hidden');
+                doubleStats.classList.add('hidden');
+
+                document.getElementById('final-time').innerText = formatTime(secondsElapsed);
+                document.getElementById('final-flips').innerText = `${flipCount} 次`;
+
+                const best = localStorage.getItem(bestRecordKey);
+                const recordTag = document.getElementById('new-record-tag');
+                if (!best || secondsElapsed < parseInt(best)) {
+                    localStorage.setItem(bestRecordKey, secondsElapsed);
+                    recordTag.classList.remove('hidden');
+                } else {
+                    recordTag.classList.add('hidden');
+                }
+            } else {
+                singleStats.classList.add('hidden');
+                doubleStats.classList.remove('hidden');
+
+                document.getElementById('v-p1-score').innerText = `${player1Score} 分`;
+                document.getElementById('v-p2-score').innerText = `${player2Score} 分`;
+
+                const winnerAnnounce = document.getElementById('winner-announcement');
+                if (player1Score > player2Score) {
+                    winnerAnnounce.innerHTML = "👑 恭喜 【 🦁 獅子隊 】 獲勝囉！";
+                    winnerAnnounce.className = "text-2xl font-black text-rose-600 mt-4 border-t-2 border-dashed border-cyan-200 pt-3";
+                } else if (player2Score > player1Score) {
+                    winnerAnnounce.innerHTML = "👑 恭喜 【 🐰 兔子隊 】 獲勝囉！";
+                    winnerAnnounce.className = "text-2xl font-black text-cyan-600 mt-4 border-t-2 border-dashed border-cyan-200 pt-3";
+                } else {
+                    winnerAnnounce.innerHTML = "🤝 太厲害了！大家平手！";
+                    winnerAnnounce.className = "text-2xl font-black text-amber-500 mt-4 border-t-2 border-dashed border-cyan-200 pt-3";
+                }
+            }
+
+            modal.classList.remove('hidden');
+        }
+
+        // --- 9.1 全螢幕五彩彩帶慶祝動畫 ---
         const canvas = document.getElementById('confetti-canvas');
         const ctx = canvas.getContext('2d');
         let confetti = [];
