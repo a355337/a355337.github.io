@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>森林動物派對 - 4~6歲幼兒翻牌遊戲</title>
     <!-- 引入 Tailwind CSS 進行精美排版 -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -91,7 +91,7 @@
         }
     </style>
 </head>
-<body class="min-h-screen flex flex-col items-center justify-between p-4 overflow-x-hidden select-none">
+<body class="h-screen max-h-screen flex flex-col items-center justify-between p-4 overflow-hidden select-none">
 
     <!-- Canvas 動態五彩碎紙背景 (過關慶祝用) -->
     <canvas id="confetti-canvas" class="fixed top-0 left-0 w-full h-full pointer-events-none z-50"></canvas>
@@ -198,7 +198,7 @@
         };
     </script>
 
-    <div id="setup-screen" class="w-full max-w-md bg-white/90 backdrop-blur-md rounded-3xl p-6 shadow-2xl border-4 border-yellow-300 my-auto">
+    <div id="setup-screen" class="w-full max-w-md bg-white/90 backdrop-blur-md rounded-3xl p-6 shadow-2xl border-4 border-yellow-300 my-auto overflow-y-auto max-h-[90vh]">
         <div class="text-center">
             <h1 class="text-4xl font-extrabold text-amber-600 tracking-wider mb-2 animate-bounce-gentle">
                 🦁 森林動物派對 🐰
@@ -269,67 +269,65 @@
         </button>
     </div>
 
-    <div id="game-screen" class="w-full max-w-5xl bg-white/95 backdrop-blur-md rounded-3xl p-4 md:p-6 shadow-2xl border-4 border-emerald-300 my-auto hidden flex flex-col justify-between">
+    <div id="game-screen" class="w-full max-w-5xl h-full bg-white/95 backdrop-blur-md rounded-3xl p-3 md:p-6 shadow-2xl border-4 border-emerald-300 my-auto hidden flex flex-col justify-between overflow-hidden">
         
         <!-- 上方控制區與計分板 -->
-        <div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-4 pb-4 border-b-2 border-dashed border-emerald-200">
+        <div id="game-header" class="flex flex-row justify-between items-center gap-2 mb-2 pb-2 border-b-2 border-dashed border-emerald-200 flex-shrink-0">
             <!-- 返回大廳與重玩 -->
-            <div class="flex gap-2 w-full md:w-auto justify-between md:justify-start">
-                <button onclick="quitToSetup()" class="py-2 px-4 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold rounded-xl shadow-md flex items-center gap-1 transition-all">
-                    🏠 返回大廳
+            <div class="flex gap-2">
+                <button onclick="quitToSetup()" class="py-1.5 px-3 bg-gray-200 hover:bg-gray-300 text-gray-700 text-sm md:text-base font-bold rounded-xl shadow-md flex items-center gap-1 transition-all">
+                    🏠 大廳
                 </button>
-                <button onclick="resetGame()" class="py-2 px-4 bg-amber-400 hover:bg-amber-500 text-white font-bold rounded-xl shadow-md flex items-center gap-1 transition-all">
-                    🔄 重新開始
+                <button onclick="resetGame()" class="py-1.5 px-3 bg-amber-400 hover:bg-amber-500 text-white text-sm md:text-base font-bold rounded-xl shadow-md flex items-center gap-1 transition-all">
+                    🔄 重來
                 </button>
             </div>
 
             <!-- 單人模式資訊欄 -->
-            <div id="single-info" class="flex gap-6 text-lg font-bold text-gray-700 items-center bg-blue-50 py-2 px-6 rounded-2xl border-2 border-blue-200">
-                <div>🕒 時間: <span id="timer-display" class="text-blue-600 text-2xl">00:00</span></div>
-                <div>✨ 翻牌次數: <span id="flips-display" class="text-purple-600 text-2xl">0</span></div>
-                <div class="hidden sm:block">🏆 最佳紀錄: <span id="best-display" class="text-amber-600">--:--</span></div>
+            <div id="single-info" class="flex gap-4 text-sm md:text-lg font-bold text-gray-700 items-center bg-blue-50 py-1.5 px-4 rounded-2xl border-2 border-blue-200">
+                <div>🕒 ⏱️ <span id="timer-display" class="text-blue-600 text-base md:text-2xl">00:00</span></div>
+                <div>✨ 翻牌: <span id="flips-display" class="text-purple-600 text-base md:text-2xl">0</span></div>
+                <div class="hidden sm:block">🏆 最佳: <span id="best-display" class="text-amber-600">--:--</span></div>
             </div>
 
             <!-- 雙人模式計分板 -->
-            <div id="double-info" class="hidden flex justify-around w-full md:w-auto gap-4">
+            <div id="double-info" class="hidden flex justify-around gap-2 items-center">
                 <!-- 玩家 1 (獅子隊) -->
-                <div id="player1-card" class="flex items-center gap-3 bg-rose-50 border-4 border-rose-200 py-2 px-4 md:px-6 rounded-2xl transition-all duration-300">
-                    <span class="text-4xl">🦁</span>
-                    <div>
-                        <div class="text-xs text-gray-500 font-bold">玩家 1</div>
-                        <div class="text-lg font-extrabold text-rose-600">獅子隊</div>
-                        <div class="text-2xl font-black text-rose-700">得分: <span id="p1-score">0</span></div>
+                <div id="player1-card" class="flex items-center gap-1 md:gap-2 bg-rose-50 border-2 md:border-4 border-rose-200 py-1 px-2 md:px-4 rounded-xl transition-all duration-300">
+                    <span class="text-2xl md:text-3xl">🦁</span>
+                    <div class="text-left">
+                        <div class="text-[10px] text-gray-400 font-bold leading-none">玩家1</div>
+                        <div class="text-xs md:text-sm font-black text-rose-700">得分: <span id="p1-score" class="text-sm md:text-lg">0</span></div>
                     </div>
                 </div>
                 <!-- V.S. 裝飾 -->
-                <div class="flex items-center text-2xl font-black text-amber-500">VS</div>
+                <div class="text-sm md:text-lg font-black text-amber-500">VS</div>
                 <!-- 玩家 2 (兔子隊) -->
-                <div id="player2-card" class="flex items-center gap-3 bg-cyan-50 border-4 border-cyan-200 py-2 px-4 md:px-6 rounded-2xl transition-all duration-300">
-                    <span class="text-4xl">🐰</span>
-                    <div>
-                        <div class="text-xs text-gray-500 font-bold">玩家 2</div>
-                        <div class="text-lg font-extrabold text-cyan-600">兔子隊</div>
-                        <div class="text-2xl font-black text-cyan-700">得分: <span id="p2-score">0</span></div>
+                <div id="player2-card" class="flex items-center gap-1 md:gap-2 bg-cyan-50 border-2 md:border-4 border-cyan-200 py-1 px-2 md:px-4 rounded-xl transition-all duration-300">
+                    <span class="text-2xl md:text-3xl">🐰</span>
+                    <div class="text-left">
+                        <div class="text-[10px] text-gray-400 font-bold leading-none">玩家2</div>
+                        <div class="text-xs md:text-sm font-black text-cyan-700">得分: <span id="p2-score" class="text-sm md:text-lg">0</span></div>
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- 奇數牌組特殊提示 -->
-        <div id="odd-magic-tip" class="hidden text-center text-sm md:text-base font-bold text-purple-600 bg-purple-50 border-2 border-purple-200 rounded-xl p-2 mb-4 animate-pulse">
+        <div id="odd-magic-tip" class="hidden text-center text-[11px] md:text-sm font-bold text-purple-600 bg-purple-50 border border-purple-200 rounded-xl p-1 mb-2 animate-pulse flex-shrink-0">
             🌈 這次牌數是單數喔！裡面藏著一張【幸運彩虹魔法卡】翻到它直接得一分！✨
         </div>
 
         <!-- 記憶卡片正方形網格容器 -->
-        <div class="flex-grow flex items-center justify-center p-2">
-            <div id="cards-grid" class="grid gap-2 md:gap-3 w-full max-w-4xl mx-auto justify-center items-center">
+        <div class="flex-grow flex items-center justify-center p-1 overflow-hidden min-h-0">
+            <div id="cards-grid" class="grid gap-1.5 md:gap-2.5 mx-auto justify-center items-center transition-all duration-300">
                 <!-- 卡牌會由 JS 動態生成並注入在此 -->
             </div>
         </div>
 
         <!-- 底部回合與狀態跑馬燈 -->
-        <div id="turn-banner" class="hidden text-center mt-4 p-3 bg-amber-100 rounded-2xl border-2 border-amber-300">
-            <p id="turn-text" class="text-xl font-extrabold text-amber-800 animate-bounce">
+        <div id="turn-banner" class="hidden text-center mt-2 p-1.5 bg-amber-100 rounded-xl border border-amber-300 flex-shrink-0">
+            <p id="turn-text" class="text-sm md:text-base font-extrabold text-amber-800 animate-bounce">
                 現在是 【 🦁 獅子隊 】 的回合，趕快翻牌吧！
             </p>
         </div>
@@ -392,8 +390,8 @@
         </div>
     </div>
 
-    <footer class="text-center text-xs text-emerald-800/60 font-semibold py-2">
-        🌳 森林動物記憶派對 v1.1 - 親子互動快樂學習 🌳
+    <footer id="game-footer" class="text-center text-[10px] md:text-xs text-emerald-800/60 font-semibold py-1 flex-shrink-0">
+        🌳 森林動物記憶派對 v1.2 - 親子互動快樂學習 🌳
     </footer>
 
     <script>
@@ -401,7 +399,7 @@
         const Decks = {
             animals: ['🦁', '🐰', '🐼', '🐯', '🐻', '🦊', '🐘', '🐵', '🐷', '🐸', '🐔', '🦉', '🐨', '🐙', '🐢', '🐬', '🐝', '🐞', '🦖', '🦄', '🦒', '🦓', '🐿️', '🐧', '🦀', '🐳', '🐫', '🦘', '🦥', '🦫', '🐏', '🐎', '🐊', '🐍', '🦎', '🐈', '🐕', '🐂', '🐏', '🐕‍🦺', '🐈‍⬛', '🐖', '🐓', '🦆', '🦢', '🦅', '🦉', '🦇', '🦋', '🐌'],
             fruits: ['🍎', '🍌', '🍉', '🍇', '🍓', '🍒', '🍍', '🍑', '🍊', '🍋', '🥝', '🍈', '🍐', '🥭', '🥥', '🍅', '🥑', '🥦', '🥕', '🌽', '🌶️', '🥔', '🍠', '🧅', '🧄', '🥯', '🍞', '🥞', '🧇', '🧀', '🍔', '🍟', '🍕', '🌭', '🥪', '🌮', '🍿', '🍘', '🍙', '🍛', '🍜', '🍣', '🍤', '🍥', '🍡', '🥟', '🍢', '🍦', '🍧', '🍨'],
-            vehicles: ['🚗', '🚓', '橫', '🚒', '🚌', '🚕', '🚜', '🚚', '🚲', '🛴', '🛵', '🚂', '✈️', '🚀', '🚁', '🛳️', '🛶', '🚠', '⛵', '🚙', '🏎️', '🏍️', '🚂', '🚆', '🚇', '🚈', '🚌', '🚏', '⛽', '🛞', '⛵', '⛴️', '🛳️', '🛸', '🛰️', '🪐', '⚓', '🚨', '🏁', '🚥', '🚧', '🗺️', '🧭', '🛹', '🛼'],
+            vehicles: ['🚗', '🚓', '🚒', '🚌', '🚕', '🚜', '🚚', '🚲', '🛴', '🛵', '🚂', '✈️', '🚀', '🚁', '🛳️', '🛶', '🚠', '⛵', '🚙', '🏎️', '🏍️', '🚂', '🚆', '🚇', '🚈', '🚌', '🚏', '⛽', '🛞', '⛵', '⛴️', '🛳️', '🛸', '🛰️', '🪐', '⚓', '🚨', '🏁', '🚥', '🚧', '🗺️', '🧭', '🛹', '🛼'],
             sweets: ['🍦', '🍧', '🍨', '🍩', '🍪', '🎂', '🍰', '🧁', '🥧', '🍫', '🍬', '🍭', '🍮', '🍯', '🍿', '🥞', '🧇', '🍡', '🍵', '🧉', '🥤', '🧃', '🧉', '🥛', '🍼', '🍨', '🍧', '🧁', '🍮', '🎂', '🥧', '🍓', '🍇', '🍒', '🍑', '🍍', '🍉', '🍌', '🍎', '🍐', '🍊', '🍋', '🍈', '🍯']
         };
 
@@ -560,7 +558,7 @@
                 p2Card.classList.add('border-cyan-200', 'bg-cyan-50');
 
                 turnText.innerHTML = "現在是 【 🦁 獅子隊 】 的回合，趕快翻牌吧！";
-                turnText.className = "text-xl font-extrabold text-rose-600 animate-bounce";
+                turnText.className = "text-xs md:text-base font-extrabold text-rose-600 animate-bounce";
             } else {
                 p2Card.classList.add('active-player-glow', 'bg-cyan-100');
                 p2Card.classList.remove('border-cyan-200');
@@ -570,7 +568,7 @@
                 p1Card.classList.add('border-rose-200', 'bg-rose-50');
 
                 turnText.innerHTML = "現在是 【 🐰 兔子隊 】 的回合，看你的囉！";
-                turnText.className = "text-xl font-extrabold text-cyan-600 animate-bounce";
+                turnText.className = "text-xs md:text-base font-extrabold text-cyan-600 animate-bounce";
             }
         }
 
@@ -604,13 +602,14 @@
             }
         }
 
-        // --- 5. 渲染網格：完美正方形 + 超大圖案適配 ---
+        // --- 5. 渲染網格：動態百分比高度自適應與極致防捲軸縮放 ---
         function renderGrid() {
             const gridContainer = document.getElementById('cards-grid');
             gridContainer.innerHTML = '';
 
-            // 使用 CSS Grid 欄寬度自適應
-            gridContainer.style.gridTemplateColumns = `repeat(${currentGridSize}, minmax(0, 1fr))`;
+            // 使用 CSS Grid 欄寬度與高度完全等比等分，確保卡片形狀能完美對齊 gridContainer
+            gridContainer.style.gridTemplateColumns = `repeat(${currentGridSize}, 1fr)`;
+            gridContainer.style.gridTemplateRows = `repeat(${currentGridSize}, 1fr)`;
             
             // 根據格子數量動態調整 Emoji 圖案和問號 ❓ 的字型大小，讓圖案盡量撐滿正方形！
             let emojiSizeClass = '';
@@ -618,30 +617,30 @@
 
             if (currentGridSize <= 3) {
                 // 3x3 超級大圖案 (無比醒目！)
-                emojiSizeClass = 'text-7xl sm:text-8xl md:text-9xl';
-                questionSizeClass = 'text-5xl sm:text-6xl md:text-7xl';
+                emojiSizeClass = 'text-5xl sm:text-7xl md:text-8xl';
+                questionSizeClass = 'text-4xl sm:text-5xl md:text-6xl';
             } else if (currentGridSize === 4) {
                 // 4x4 經典大圖案
-                emojiSizeClass = 'text-6xl sm:text-7xl md:text-8xl';
-                questionSizeClass = 'text-4xl sm:text-5xl md:text-6xl';
+                emojiSizeClass = 'text-4xl sm:text-6xl md:text-7xl';
+                questionSizeClass = 'text-3xl sm:text-4xl md:text-5xl';
             } else if (currentGridSize <= 6) {
                 // 5x5 與 6x6
-                emojiSizeClass = 'text-4xl sm:text-5xl md:text-6xl';
-                questionSizeClass = 'text-3xl sm:text-4xl md:text-5xl';
+                emojiSizeClass = 'text-2xl sm:text-4xl md:text-5xl';
+                questionSizeClass = 'text-2xl sm:text-3xl md:text-4xl';
             } else if (currentGridSize <= 8) {
                 // 8x8 記憶王
-                emojiSizeClass = 'text-2xl sm:text-3xl md:text-4xl';
-                questionSizeClass = 'text-xl sm:text-2xl md:text-3xl';
+                emojiSizeClass = 'text-lg sm:text-2xl md:text-3xl';
+                questionSizeClass = 'text-base sm:text-xl md:text-2xl';
             } else {
                 // 10x10 終極模式
-                emojiSizeClass = 'text-lg sm:text-xl md:text-2xl';
-                questionSizeClass = 'text-sm sm:text-base md:text-lg';
+                emojiSizeClass = 'text-xs sm:text-base md:text-xl';
+                questionSizeClass = 'text-[10px] sm:text-sm md:text-base';
             }
 
             cards.forEach((card, index) => {
                 const cardEl = document.createElement('div');
-                // 採用 relative w-full aspect-square，確保在所有解析度下皆為【絕對完美正方形】
-                cardEl.className = `card-container relative w-full aspect-square cursor-pointer`;
+                // 採用 relative w-full h-full。因為 grid 容器本身已被設定為正方形，所以每張卡片必為正方形
+                cardEl.className = `card-container relative w-full h-full cursor-pointer`;
                 cardEl.dataset.index = index;
                 cardEl.dataset.id = card.id;
 
@@ -665,7 +664,48 @@
                 cardEl.addEventListener('click', () => handleCardClick(cardEl, index));
                 gridContainer.appendChild(cardEl);
             });
+
+            // 渲染完畢後，立即執行畫面縮放校正，杜絕滑動條
+            setTimeout(resizeGameGrid, 50);
         }
+
+        // --- 5.1 免捲軸自動縮放核心演算法 ---
+        function resizeGameGrid() {
+            const gameScreen = document.getElementById('game-screen');
+            if (gameScreen.classList.contains('hidden')) return;
+
+            const gridContainer = document.getElementById('cards-grid');
+            if (!gridContainer) return;
+
+            // 1. 計算可用寬度：網格父容器之寬度（再保留一些安全緩衝邊距）
+            const parent = gridContainer.parentElement;
+            const availWidth = parent.clientWidth - 16; 
+
+            // 2. 計算可用高度：瀏覽器目前視窗高度，扣除控制列、提示卡及底部資訊的高度
+            const viewportHeight = window.innerHeight;
+            const header = document.getElementById('game-header');
+            const magicTip = document.getElementById('odd-magic-tip');
+            const turnBanner = document.getElementById('turn-banner');
+            const footer = document.getElementById('game-footer');
+
+            let occupiedHeight = 50; // 安全緩衝高度（包括外邊距 padding / margin 等）
+            if (header) occupiedHeight += header.offsetHeight;
+            if (magicTip && !magicTip.classList.contains('hidden')) occupiedHeight += magicTip.offsetHeight;
+            if (turnBanner && !turnBanner.classList.contains('hidden')) occupiedHeight += turnBanner.offsetHeight;
+            if (footer) occupiedHeight += footer.offsetHeight;
+
+            const availHeight = viewportHeight - occupiedHeight - 30; // 扣除剩餘安全間隔
+
+            // 3. 設定網格為「完美正方形」，大小為「可用寬度與可用高度的最小值」
+            // 最小不可低於 180px，最大限制為 650px，確保大螢幕平板/電腦上的美觀
+            const size = Math.max(180, Math.min(availWidth, availHeight, 650));
+
+            gridContainer.style.width = `${size}px`;
+            gridContainer.style.height = `${size}px`;
+        }
+
+        // 綁定視窗 resize 事件，只要使用者轉動平板、變更大小，即時重新計算，不產生捲軸！
+        window.addEventListener('resize', resizeGameGrid);
 
         // --- 6. 卡片點擊與配對判斷邏輯 ---
         function handleCardClick(cardEl, index) {
